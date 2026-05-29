@@ -27,16 +27,16 @@ from app.services import task as tm
 from app.utils import utils
 
 st.set_page_config(
-    page_title="MoneyPrinterTurbo",
+    page_title="VideoGenAI",
     page_icon="🤖",
     layout="wide",
     initial_sidebar_state="auto",
     menu_items={
-        "Report a bug": "https://github.com/harry0703/MoneyPrinterTurbo/issues",
-        "About": "# MoneyPrinterTurbo\nSimply provide a topic or keyword for a video, and it will "
+        "Report a bug": "https://github.com/timpara/VideoGenAI/issues",
+        "About": "# VideoGenAI\nSimply provide a topic or keyword for a video, and it will "
         "automatically generate the video copy, video materials, video subtitles, "
         "and video background music before synthesizing a high-definition short "
-        "video.\n\nhttps://github.com/harry0703/MoneyPrinterTurbo",
+        "video.\n\nhttps://github.com/timpara/VideoGenAI",
     },
 )
 
@@ -50,7 +50,7 @@ h1 {
 """
 st.markdown(streamlit_style, unsafe_allow_html=True)
 
-# 定义资源目录
+# Define resource directories
 font_dir = os.path.join(root_dir, "resource", "fonts")
 song_dir = os.path.join(root_dir, "resource", "songs")
 i18n_dir = os.path.join(root_dir, "webui", "i18n")
@@ -67,17 +67,18 @@ if "video_terms" not in st.session_state:
 if "ui_language" not in st.session_state:
     st.session_state["ui_language"] = config.ui.get("language", system_locale)
 if "local_video_materials" not in st.session_state:
-    # 记住用户最近一次已经落盘的本地素材，避免仅修改文案后二次生成时丢失素材列表。
+    # Remember the most recent set of local materials the user persisted to disk,
+    # so editing only the script does not lose the material list on regeneration.
     st.session_state["local_video_materials"] = []
 
-# 加载语言文件
+# Load locale files
 locales = utils.load_locales(i18n_dir)
 
-# 创建一个顶部栏，包含标题和语言选择
+# Create a top bar with a title and language selector
 title_col, lang_col = st.columns([3, 1])
 
 with title_col:
-    st.title(f"MoneyPrinterTurbo v{config.project_version}")
+    st.title(f"VideoGenAI v{config.project_version}")
 
 with lang_col:
     display_languages = []
@@ -133,15 +134,17 @@ def get_all_songs():
 
 def open_task_folder(task_id):
     try:
-        # task_id 应始终是服务端生成的 UUID。这里先做格式校验，避免异常值
-        # 通过路径拼接访问任务目录之外的位置，也避免后续打开目录时触发
-        # 平台 shell 对特殊字符的解释。
+        # task_id should always be a server-generated UUID. Validate the format here
+        # to prevent malformed values from being joined into a path that escapes the
+        # tasks directory, and to avoid the platform shell later interpreting
+        # special characters when opening the directory.
         normalized_task_id = str(UUID(str(task_id)))
         tasks_root = os.path.abspath(os.path.join(root_dir, "storage", "tasks"))
         path = os.path.abspath(os.path.join(tasks_root, normalized_task_id))
 
-        # 即使 UUID 校验通过，也再次确认最终路径仍在任务根目录内，避免
-        # 未来调用方调整 task_id 来源时引入路径穿越风险。
+        # Even when the UUID check passes, double-check that the resolved path is
+        # still inside the tasks root, so future changes to where task_id comes
+        # from cannot introduce a path-traversal risk.
         if not path.startswith(tasks_root + os.sep):
             logger.warning(f"invalid task folder path: {path}")
             return
@@ -174,14 +177,14 @@ def init_log():
     _lvl = "DEBUG"
 
     def format_record(record):
-        # 获取日志记录中的文件全路径
+        # Get the full file path from the log record
         file_path = record["file"].path
-        # 将绝对路径转换为相对于项目根目录的路径
+        # Convert the absolute path to one relative to the project root
         relative_path = os.path.relpath(file_path, root_dir)
-        # 更新记录中的文件路径
+        # Update the file path on the record
         record["file"].path = f"./{relative_path}"
-        # 返回修改后的格式字符串
-        # 您可以根据需要调整这里的格式
+        # Return the formatted string
+        # Adjust the format here as needed
         record["message"] = record["message"].replace(root_dir, ".")
 
         _format = (
@@ -211,7 +214,7 @@ def tr(key):
     return loc.get("Translation", {}).get(key, key)
 
 
-# 创建基础设置折叠框
+# Create the basic settings expander
 if not config.app.get("hide_config", False):
     with st.expander(tr("Basic Settings"), expanded=False):
         config_panels = st.columns(3)
@@ -219,21 +222,21 @@ if not config.app.get("hide_config", False):
         middle_config_panel = config_panels[1]
         right_config_panel = config_panels[2]
 
-        # 左侧面板 - 日志设置
+        # Left panel - log settings
         with left_config_panel:
-            # 是否隐藏配置面板
+            # Whether to hide the configuration panel
             hide_config = st.checkbox(
                 tr("Hide Basic Settings"), value=config.app.get("hide_config", False)
             )
             config.app["hide_config"] = hide_config
 
-            # 是否禁用日志显示
+            # Whether to disable the log display
             hide_log = st.checkbox(
                 tr("Hide Log"), value=config.ui.get("hide_log", False)
             )
             config.ui["hide_log"] = hide_log
 
-        # 中间面板 - LLM 设置
+        # Middle panel - LLM settings
 
         with middle_config_panel:
             st.write(tr("LLM Settings"))
@@ -287,12 +290,12 @@ if not config.app.get("hide_config", False):
 
                 with llm_helper:
                     tips = """
-                            ##### Ollama配置说明
-                            - **API Key**: 随便填写，比如 123
-                            - **Base Url**: 一般为 http://localhost:11434/v1
-                                - 如果 `MoneyPrinterTurbo` 和 `Ollama` **不在同一台机器上**，需要填写 `Ollama` 机器的IP地址
-                                - 如果 `MoneyPrinterTurbo` 是 `Docker` 部署，建议填写 `http://host.docker.internal:11434/v1`
-                            - **Model Name**: 使用 `ollama list` 查看，比如 `qwen:7b`
+                            ##### Ollama configuration
+                            - **API Key**: Any value works, e.g. `123`
+                            - **Base Url**: Usually `http://localhost:11434/v1`
+                                - If `VideoGenAI` and `Ollama` are **on different machines**, use the IP address of the Ollama host
+                                - If `VideoGenAI` runs in `Docker`, prefer `http://host.docker.internal:11434/v1`
+                            - **Model Name**: Run `ollama list` to see installed models, e.g. `qwen:7b`
                             """
 
             if llm_provider == "openai":
@@ -300,11 +303,11 @@ if not config.app.get("hide_config", False):
                     llm_model_name = "gpt-3.5-turbo"
                 with llm_helper:
                     tips = """
-                            ##### OpenAI 配置说明
-                            > 需要VPN开启全局流量模式
-                            - **API Key**: [点击到官网申请](https://platform.openai.com/api-keys)
-                            - **Base Url**: 官方 OpenAI 可留空；如果使用 OpenAI 兼容供应商（例如 OpenRouter），请填写对应的兼容接口地址
-                            - **Model Name**: 填写**有权限**的模型；如果使用兼容供应商，请填写该平台支持的模型 ID
+                            ##### OpenAI configuration
+                            > A VPN with global traffic routing may be required in some regions
+                            - **API Key**: [Get one from the official site](https://platform.openai.com/api-keys)
+                            - **Base Url**: Leave empty for official OpenAI. For OpenAI-compatible providers (e.g. OpenRouter), use that provider's compatible endpoint
+                            - **Model Name**: Use a model you have **access to**. For compatible providers, use a model ID supported by that platform
                             """
 
             if llm_provider == "moonshot":
@@ -312,22 +315,22 @@ if not config.app.get("hide_config", False):
                     llm_model_name = "moonshot-v1-8k"
                 with llm_helper:
                     tips = """
-                            ##### Moonshot 配置说明
-                            - **API Key**: [点击到官网申请](https://platform.moonshot.cn/console/api-keys)
-                            - **Base Url**: 固定为 https://api.moonshot.cn/v1
-                            - **Model Name**: 比如 moonshot-v1-8k，[点击查看模型列表](https://platform.moonshot.cn/docs/intro#%E6%A8%A1%E5%9E%8B%E5%88%97%E8%A1%A8)
+                            ##### Moonshot configuration
+                            - **API Key**: [Get one from the official site](https://platform.moonshot.cn/console/api-keys)
+                            - **Base Url**: Fixed value `https://api.moonshot.cn/v1`
+                            - **Model Name**: e.g. `moonshot-v1-8k`. [See the model list](https://platform.moonshot.cn/docs/intro#%E6%A8%A1%E5%9E%8B%E5%88%97%E8%A1%A8)
                             """
             if llm_provider == "oneapi":
                 if not llm_model_name:
                     llm_model_name = (
-                        "claude-3-5-sonnet-20240620"  # 默认模型，可以根据需要调整
+                        "claude-3-5-sonnet-20240620"  # default model, adjust as needed
                     )
                 with llm_helper:
                     tips = """
-                        ##### OneAPI 配置说明
-                        - **API Key**: 填写您的 OneAPI 密钥
-                        - **Base Url**: 填写 OneAPI 的基础 URL
-                        - **Model Name**: 填写您要使用的模型名称，例如 claude-3-5-sonnet-20240620
+                        ##### OneAPI configuration
+                        - **API Key**: Your OneAPI key
+                        - **Base Url**: The OneAPI base URL
+                        - **Model Name**: The model you want to use, e.g. `claude-3-5-sonnet-20240620`
                         """
 
             if llm_provider == "qwen":
@@ -335,10 +338,10 @@ if not config.app.get("hide_config", False):
                     llm_model_name = "qwen-max"
                 with llm_helper:
                     tips = """
-                            ##### 通义千问Qwen 配置说明
-                            - **API Key**: [点击到官网申请](https://dashscope.console.aliyun.com/apiKey)
-                            - **Base Url**: 留空
-                            - **Model Name**: 比如 qwen-max，[点击查看模型列表](https://help.aliyun.com/zh/dashscope/developer-reference/model-introduction#3ef6d0bcf91wy)
+                            ##### Tongyi Qianwen (Qwen) configuration
+                            - **API Key**: [Get one from the official site](https://dashscope.console.aliyun.com/apiKey)
+                            - **Base Url**: Leave empty
+                            - **Model Name**: e.g. `qwen-max`. [See the model list](https://help.aliyun.com/zh/dashscope/developer-reference/model-introduction#3ef6d0bcf91wy)
                             """
 
             if llm_provider == "g4f":
@@ -346,20 +349,20 @@ if not config.app.get("hide_config", False):
                     llm_model_name = "gpt-3.5-turbo"
                 with llm_helper:
                     tips = """
-                            ##### gpt4free 配置说明
-                            > [GitHub开源项目](https://github.com/xtekky/gpt4free)，可以免费使用GPT模型，但是**稳定性较差**
-                            - **API Key**: 随便填写，比如 123
-                            - **Base Url**: 留空
-                            - **Model Name**: 比如 gpt-3.5-turbo，[点击查看模型列表](https://github.com/xtekky/gpt4free/blob/main/g4f/models.py#L308)
+                            ##### gpt4free configuration
+                            > [Open-source GitHub project](https://github.com/xtekky/gpt4free) that lets you use GPT models for free, but **stability is poor**
+                            - **API Key**: Any value works, e.g. `123`
+                            - **Base Url**: Leave empty
+                            - **Model Name**: e.g. `gpt-3.5-turbo`. [See the model list](https://github.com/xtekky/gpt4free/blob/main/g4f/models.py#L308)
                             """
             if llm_provider == "azure":
                 with llm_helper:
                     tips = """
-                            ##### Azure 配置说明
-                            > [点击查看如何部署模型](https://learn.microsoft.com/zh-cn/azure/ai-services/openai/how-to/create-resource)
-                            - **API Key**: [点击到Azure后台创建](https://portal.azure.com/#view/Microsoft_Azure_ProjectOxford/CognitiveServicesHub/~/OpenAI)
-                            - **Base Url**: 留空
-                            - **Model Name**: 填写你实际的部署名
+                            ##### Azure configuration
+                            > [See how to deploy a model](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/create-resource)
+                            - **API Key**: [Create one in the Azure portal](https://portal.azure.com/#view/Microsoft_Azure_ProjectOxford/CognitiveServicesHub/~/OpenAI)
+                            - **Base Url**: Leave empty
+                            - **Model Name**: Your actual deployment name
                             """
 
             if llm_provider == "gemini":
@@ -368,11 +371,11 @@ if not config.app.get("hide_config", False):
 
                 with llm_helper:
                     tips = """
-                            ##### Gemini 配置说明
-                            > 需要VPN开启全局流量模式
-                            - **API Key**: [点击到官网申请](https://ai.google.dev/)
-                            - **Base Url**: 留空
-                            - **Model Name**: 比如 gemini-1.0-pro
+                            ##### Gemini configuration
+                            > A VPN with global traffic routing may be required in some regions
+                            - **API Key**: [Get one from the official site](https://ai.google.dev/)
+                            - **Base Url**: Leave empty
+                            - **Model Name**: e.g. `gemini-1.0-pro`
                             """
 
             if llm_provider == "grok":
@@ -383,10 +386,10 @@ if not config.app.get("hide_config", False):
 
                 with llm_helper:
                     tips = """
-                            ##### Grok 配置说明
-                            - **API Key**: 填写您的 GrokAPI 密钥
-                            - **Base Url**: 填写 GrokAPI 的基础 URL
-                            - **Model Name**: 比如 grok-4.3
+                            ##### Grok configuration
+                            - **API Key**: Your Grok API key
+                            - **Base Url**: The Grok API base URL
+                            - **Model Name**: e.g. `grok-4.3`
                             """
 
             if llm_provider == "deepseek":
@@ -396,10 +399,10 @@ if not config.app.get("hide_config", False):
                     llm_base_url = "https://api.deepseek.com"
                 with llm_helper:
                     tips = """
-                            ##### DeepSeek 配置说明
-                            - **API Key**: [点击到官网申请](https://platform.deepseek.com/api_keys)
-                            - **Base Url**: 固定为 https://api.deepseek.com
-                            - **Model Name**: 固定为 deepseek-chat
+                            ##### DeepSeek configuration
+                            - **API Key**: [Get one from the official site](https://platform.deepseek.com/api_keys)
+                            - **Base Url**: Fixed value `https://api.deepseek.com`
+                            - **Model Name**: Fixed value `deepseek-chat`
                             """
 
             if llm_provider == "modelscope":
@@ -409,19 +412,19 @@ if not config.app.get("hide_config", False):
                     llm_base_url = "https://api-inference.modelscope.cn/v1/"
                 with llm_helper:
                     tips = """
-                            ##### ModelScope 配置说明
-                            - **API Key**: [点击到官网申请](https://modelscope.cn/docs/model-service/API-Inference/intro)
-                            - **Base Url**: 固定为 https://api-inference.modelscope.cn/v1/
-                            - **Model Name**: 比如 Qwen/Qwen3-32B，[点击查看模型列表](https://modelscope.cn/models?filter=inference_type&page=1)
+                            ##### ModelScope configuration
+                            - **API Key**: [Get one from the official site](https://modelscope.cn/docs/model-service/API-Inference/intro)
+                            - **Base Url**: Fixed value `https://api-inference.modelscope.cn/v1/`
+                            - **Model Name**: e.g. `Qwen/Qwen3-32B`. [See the model list](https://modelscope.cn/models?filter=inference_type&page=1)
                             """
 
             if llm_provider == "ernie":
                 with llm_helper:
                     tips = """
-                            ##### 百度文心一言 配置说明
-                            - **API Key**: [点击到官网申请](https://console.bce.baidu.com/qianfan/ais/console/applicationConsole/application)
-                            - **Secret Key**: [点击到官网申请](https://console.bce.baidu.com/qianfan/ais/console/applicationConsole/application)
-                            - **Base Url**: 填写 **请求地址** [点击查看文档](https://cloud.baidu.com/doc/WENXINWORKSHOP/s/jlil56u11#%E8%AF%B7%E6%B1%82%E8%AF%B4%E6%98%8E)
+                            ##### Baidu ERNIE (Wenxin Yiyan) configuration
+                            - **API Key**: [Get one from the official site](https://console.bce.baidu.com/qianfan/ais/console/applicationConsole/application)
+                            - **Secret Key**: [Get one from the official site](https://console.bce.baidu.com/qianfan/ais/console/applicationConsole/application)
+                            - **Base Url**: The **request URL**. [See the docs](https://cloud.baidu.com/doc/WENXINWORKSHOP/s/jlil56u11#%E8%AF%B7%E6%B1%82%E8%AF%B4%E6%98%8E)
                             """
 
             if llm_provider == "pollinations":
@@ -447,6 +450,8 @@ if not config.app.get("hide_config", False):
                             """
 
             if tips and config.ui["language"] == "zh":
+                # Locale-specific hint shown only to Chinese-language users:
+                # recommends China-accessible providers to avoid VPN requirements.
                 st.warning(
                     "中国用户建议使用 **DeepSeek** 或 **Moonshot** 作为大模型提供商\n- 国内可直接访问，不需要VPN \n- 注册就送额度，基本够用"
                 )
@@ -487,7 +492,7 @@ if not config.app.get("hide_config", False):
                 if st_llm_account_id:
                     config.app[f"{llm_provider}_account_id"] = st_llm_account_id
 
-        # 右侧面板 - API 密钥设置
+        # Right panel - API key settings
         with right_config_panel:
 
             def get_keys_from_config(cfg_key):
@@ -618,11 +623,12 @@ with middle_panel:
         config.app["video_source"] = params.video_source
 
         if params.video_source == "local":
-            # Streamlit 的文件类型校验对扩展名大小写敏感，这里同时放行大小写两种形式。
+            # Streamlit's file-type check is case-sensitive on the extension, so allow both upper- and lowercase variants here.
             local_file_types = ["mp4", "mov", "avi", "flv", "mkv", "jpg", "jpeg", "png"]
             uploaded_files = st.file_uploader(
                 "Upload Local Files",
-                type=local_file_types + [file_type.upper() for file_type in local_file_types],
+                type=local_file_types
+                + [file_type.upper() for file_type in local_file_types],
                 accept_multiple_files=True,
             )
 
@@ -640,7 +646,7 @@ with middle_panel:
             video_concat_modes[selected_index][1]
         )
 
-        # 视频转场模式
+        # Video transition mode
         video_transition_modes = [
             (tr("None"), VideoTransitionMode.none.value),
             (tr("Shuffle"), VideoTransitionMode.shuffle.value),
@@ -685,7 +691,7 @@ with middle_panel:
     with st.container(border=True):
         st.write(tr("Audio Settings"))
 
-        # 添加TTS服务器选择下拉框
+        # Add the TTS server selector dropdown
         tts_servers = [
             ("azure-tts-v1", "Azure TTS V1"),
             ("azure-tts-v2", "Azure TTS V2"),
@@ -693,7 +699,7 @@ with middle_panel:
             ("gemini-tts", "Google Gemini TTS"),
         ]
 
-        # 获取保存的TTS服务器，默认为v1
+        # Get the saved TTS server, default to v1
         saved_tts_server = config.ui.get("tts_server", "azure-tts-v1")
         saved_tts_server_index = 0
         for i, (server_value, _) in enumerate(tts_servers):
@@ -711,27 +717,27 @@ with middle_panel:
         selected_tts_server = tts_servers[selected_tts_server_index][0]
         config.ui["tts_server"] = selected_tts_server
 
-        # 根据选择的TTS服务器获取声音列表
+        # Get the voice list based on the selected TTS server
         filtered_voices = []
 
         if selected_tts_server == "siliconflow":
-            # 获取硅基流动的声音列表
+            # Get the SiliconFlow voice list
             filtered_voices = voice.get_siliconflow_voices()
         elif selected_tts_server == "gemini-tts":
-            # 获取Gemini TTS的声音列表
+            # Get the Gemini TTS voice list
             filtered_voices = voice.get_gemini_voices()
         else:
-            # 获取Azure的声音列表
+            # Get the Azure voice list
             all_voices = voice.get_all_azure_voices(filter_locals=None)
 
-            # 根据选择的TTS服务器筛选声音
+            # Filter voices by the selected TTS server
             for v in all_voices:
                 if selected_tts_server == "azure-tts-v2":
-                    # V2版本的声音名称中包含"v2"
+                    # V2 voice names contain "V2"
                     if "V2" in v:
                         filtered_voices.append(v)
                 else:
-                    # V1版本的声音名称中不包含"v2"
+                    # V1 voice names do not contain "V2"
                     if "V2" not in v:
                         filtered_voices.append(v)
 
@@ -745,21 +751,21 @@ with middle_panel:
         saved_voice_name = config.ui.get("voice_name", "")
         saved_voice_name_index = 0
 
-        # 检查保存的声音是否在当前筛选的声音列表中
+        # Check whether the saved voice is in the current filtered list
         if saved_voice_name in friendly_names:
             saved_voice_name_index = list(friendly_names.keys()).index(saved_voice_name)
         else:
-            # 如果不在，则根据当前UI语言选择一个默认声音
+            # If not, pick a default voice based on the current UI language
             for i, v in enumerate(filtered_voices):
                 if v.lower().startswith(st.session_state["ui_language"].lower()):
                     saved_voice_name_index = i
                     break
 
-        # 如果没有找到匹配的声音，使用第一个声音
+        # If no matching voice is found, fall back to the first voice
         if saved_voice_name_index >= len(friendly_names) and friendly_names:
             saved_voice_name_index = 0
 
-        # 确保有声音可选
+        # Make sure at least one voice is available
         if friendly_names:
             selected_friendly_name = st.selectbox(
                 tr("Speech Synthesis"),
@@ -775,7 +781,7 @@ with middle_panel:
             params.voice_name = voice_name
             config.ui["voice_name"] = voice_name
         else:
-            # 如果没有声音可选，显示提示信息
+            # No voices available - show a hint
             st.warning(
                 tr(
                     "No voices available for the selected TTS server. Please select another server."
@@ -784,7 +790,7 @@ with middle_panel:
             params.voice_name = ""
             config.ui["voice_name"] = ""
 
-        # 只有在有声音可选时才显示试听按钮
+        # Only show the preview button when at least one voice is available
         if friendly_names and st.button(tr("Play Voice")):
             play_content = params.video_subject
             if not play_content:
@@ -817,7 +823,7 @@ with middle_panel:
                     if os.path.exists(audio_file):
                         os.remove(audio_file)
 
-        # 当选择V2版本或者声音是V2声音时，显示服务区域和API key输入框
+        # Show the speech region and API key inputs when V2 is selected or the voice is a V2 voice
         if selected_tts_server == "azure-tts-v2" or (
             voice_name and voice.is_azure_v2_voice(voice_name)
         ):
@@ -837,7 +843,7 @@ with middle_panel:
             config.azure["speech_region"] = azure_speech_region
             config.azure["speech_key"] = azure_speech_key
 
-        # 当选择硅基流动时，显示API key输入框和说明信息
+        # When SiliconFlow is selected, show the API key input and help info
         if selected_tts_server == "siliconflow" or (
             voice_name and voice.is_siliconflow_voice(voice_name)
         ):
@@ -850,7 +856,7 @@ with middle_panel:
                 key="siliconflow_api_key_input",
             )
 
-            # 显示硅基流动的说明信息
+            # Show SiliconFlow help info
             st.info(
                 tr("SiliconFlow TTS Settings")
                 + ":\n"
@@ -916,7 +922,7 @@ with middle_panel:
             )
             if custom_bgm_file and os.path.exists(custom_bgm_file):
                 params.bgm_file = custom_bgm_file
-                # st.write(f":red[已选择自定义背景音乐]：**{custom_bgm_file}**")
+                # st.write(f":red[Custom background music selected]: **{custom_bgm_file}**")
         params.bgm_volume = st.selectbox(
             tr("Background Music Volume"),
             options=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
@@ -1019,7 +1025,9 @@ with right_panel:
 
             if config.app["pexels_api_keys"]:
                 delete_key = st.selectbox(
-                    tr("Select Pexels API Key to delete"), config.app["pexels_api_keys"], key="pexels_delete_key"
+                    tr("Select Pexels API Key to delete"),
+                    config.app["pexels_api_keys"],
+                    key="pexels_delete_key",
                 )
                 if st.button(tr("Delete Selected Pexels API Key")):
                     config.app["pexels_api_keys"].remove(delete_key)
@@ -1049,7 +1057,9 @@ with right_panel:
 
             if config.app["pixabay_api_keys"]:
                 delete_key = st.selectbox(
-                    tr("Select Pixabay API Key to delete"), config.app["pixabay_api_keys"], key="pixabay_delete_key"
+                    tr("Select Pixabay API Key to delete"),
+                    config.app["pixabay_api_keys"],
+                    key="pixabay_delete_key",
                 )
                 if st.button(tr("Delete Selected Pixabay API Key")):
                     config.app["pixabay_api_keys"].remove(delete_key)
@@ -1082,8 +1092,10 @@ if start_button:
 
     if uploaded_audio_file:
         task_dir = utils.task_dir(task_id)
-        # 上传文件名来自浏览器，不能直接拼到磁盘路径里；这里只保留扩展名，
-        # 并使用固定文件名保存到当前任务目录，避免路径穿越或特殊字符问题。
+        # The uploaded filename comes from the browser and must not be joined
+        # directly into a disk path; keep only the extension and use a fixed
+        # filename inside the current task directory to avoid path traversal
+        # or issues with special characters.
         _, audio_ext = os.path.splitext(os.path.basename(uploaded_audio_file.name))
         audio_ext = audio_ext.lower() or ".mp3"
         custom_audio_path = os.path.join(task_dir, f"custom-audio{audio_ext}")
@@ -1093,7 +1105,8 @@ if start_button:
 
     if uploaded_files:
         local_videos_dir = utils.storage_dir("local_videos", create=True)
-        # 每次重新上传时都以本次选择的素材为准，避免旧素材不断重复追加。
+        # Each upload replaces the material list with the current selection, so
+        # old materials are not appended over and over.
         params.video_materials = []
         persisted_local_materials = []
         for file in uploaded_files:
@@ -1111,10 +1124,12 @@ if start_button:
                         "duration": m.duration,
                     }
                 )
-        # 将已上传并保存到本地的视频素材写入会话，供后续只改文案时直接复用。
+        # Write the uploaded and persisted video materials into the session so
+        # they can be reused when only the script changes later.
         st.session_state["local_video_materials"] = persisted_local_materials
     elif params.video_source == "local" and st.session_state["local_video_materials"]:
-        # 当用户没有重新上传文件时，复用最近一次已经保存到磁盘的本地素材列表。
+        # When the user has not re-uploaded files, reuse the most recent local
+        # material list that was already saved to disk.
         params.video_materials = []
         for material in st.session_state["local_video_materials"]:
             m = MaterialInfo()

@@ -1,6 +1,5 @@
 import asyncio
 import unittest
-import os
 import sys
 import tempfile
 import time
@@ -34,75 +33,90 @@ text_zh = """
 12日天气短暂好转，早晚清凉；
 """
 
-voice_rate=1.0
-voice_volume=1.0
-                    
+voice_rate = 1.0
+voice_volume = 1.0
+
+
 class TestVoiceService(unittest.TestCase):
     def setUp(self):
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
-    
+
     def tearDown(self):
         self.loop.close()
-    
+
     def test_siliconflow(self):
-        # SiliconFlow 的 API Key 存在 [siliconflow].api_key 中，运行时代码也是从
-        # config.siliconflow 读取；这里必须使用同一配置源，避免正确配置凭据时
-        # 测试仍然被误跳过。
+        # SiliconFlow's API key is stored under [siliconflow].api_key, and the
+        # runtime code reads it from config.siliconflow. We have to use the same
+        # config source here so the test is not skipped by mistake when the
+        # credentials are correctly configured.
         if not vs.config.siliconflow.get("api_key"):
             self.skipTest("siliconflow_api_key is not configured")
 
         voice_name = "siliconflow:FunAudioLLM/CosyVoice2-0.5B:alex-Male"
         voice_name = vs.parse_voice_name(voice_name)
-        
+
         async def _do():
             parts = voice_name.split(":")
             if len(parts) >= 3:
                 model = parts[1]
-                # 移除性别后缀，例如 "alex-Male" -> "alex"
+                # Remove the gender suffix, e.g. "alex-Male" -> "alex"
                 voice_with_gender = parts[2]
                 voice = voice_with_gender.split("-")[0]
-                # 构建完整的voice参数，格式为 "model:voice"
+                # Build the full voice parameter in "model:voice" format
                 full_voice = f"{model}:{voice}"
                 voice_file = f"{temp_dir}/tts-siliconflow-{voice}.mp3"
                 subtitle_file = f"{temp_dir}/tts-siliconflow-{voice}.srt"
                 sub_maker = vs.siliconflow_tts(
-                    text=text_zh, model=model, voice=full_voice, voice_file=voice_file, voice_rate=voice_rate, voice_volume=voice_volume
+                    text=text_zh,
+                    model=model,
+                    voice=full_voice,
+                    voice_file=voice_file,
+                    voice_rate=voice_rate,
+                    voice_volume=voice_volume,
                 )
                 if not sub_maker:
                     self.fail("siliconflow tts failed")
-                vs.create_subtitle(sub_maker=sub_maker, text=text_zh, subtitle_file=subtitle_file)
+                vs.create_subtitle(
+                    sub_maker=sub_maker, text=text_zh, subtitle_file=subtitle_file
+                )
                 audio_duration = vs.get_audio_duration(sub_maker)
                 print(f"voice: {voice_name}, audio duration: {audio_duration}s")
             else:
                 self.fail("siliconflow invalid voice name")
 
         self.loop.run_until_complete(_do())
-    
+
     def test_azure_tts_v1(self):
         voice_name = "zh-CN-XiaoyiNeural-Female"
         voice_name = vs.parse_voice_name(voice_name)
         print(voice_name)
-        
+
         voice_file = f"{temp_dir}/tts-azure-v1-{voice_name}.mp3"
         subtitle_file = f"{temp_dir}/tts-azure-v1-{voice_name}.srt"
         sub_maker = vs.azure_tts_v1(
-            text=text_zh, voice_name=voice_name, voice_file=voice_file, voice_rate=voice_rate
+            text=text_zh,
+            voice_name=voice_name,
+            voice_file=voice_file,
+            voice_rate=voice_rate,
         )
         if not sub_maker:
             self.fail("azure tts v1 failed")
-        vs.create_subtitle(sub_maker=sub_maker, text=text_zh, subtitle_file=subtitle_file)
+        vs.create_subtitle(
+            sub_maker=sub_maker, text=text_zh, subtitle_file=subtitle_file
+        )
         audio_duration = vs.get_audio_duration(sub_maker)
         print(f"voice: {voice_name}, audio duration: {audio_duration}s")
 
     def test_azure_tts_v1_supports_legacy_edge_tts_without_boundary(self):
         """
-        验证 Azure TTS V1 在旧版 edge_tts 依赖残留时仍可继续工作。
+        Verify that Azure TTS V1 continues to work when an older edge_tts
+        dependency is still installed.
 
-        这个回归场景对应 Windows 便携包更新失败后，现场环境还停留在旧版
-        edge_tts 的情况：
-        1. `Communicate.__init__()` 不接受 `boundary`
-        2. 只有异步 `stream()`，没有 `stream_sync()`
+        This regression scenario maps to a Windows portable bundle that failed
+        to update and is still running an older version of edge_tts:
+        1. ``Communicate.__init__()`` does not accept ``boundary``
+        2. Only the async ``stream()`` exists, with no ``stream_sync()``
         """
 
         class _LegacyCommunicate:
@@ -132,9 +146,11 @@ class TestVoiceService(unittest.TestCase):
                     return ""
                 return "1\n00:00:00,000 --> 00:00:01,000\nlegacy\n"
 
-        with tempfile.TemporaryDirectory() as tmp_dir, patch.object(
-            vs.edge_tts, "Communicate", _LegacyCommunicate
-        ), patch.object(vs.edge_tts, "SubMaker", _FakeSubMaker):
+        with (
+            tempfile.TemporaryDirectory() as tmp_dir,
+            patch.object(vs.edge_tts, "Communicate", _LegacyCommunicate),
+            patch.object(vs.edge_tts, "SubMaker", _FakeSubMaker),
+        ):
             voice_file = str(Path(tmp_dir) / "legacy-edge-tts.mp3")
             sub_maker = vs.azure_tts_v1(
                 text="legacy edge tts compatibility",
@@ -150,12 +166,14 @@ class TestVoiceService(unittest.TestCase):
 
     def test_azure_tts_v1_times_out_hanging_stream_sync(self):
         """
-        验证 Azure TTS V1 在 edge_tts 同步流卡住时能够快速失败。
+        Verify that Azure TTS V1 fails fast when the edge_tts synchronous
+        stream hangs.
 
-        真实现场里，网络异常、服务端限流、voice 语言与文本不匹配时，
-        `stream_sync()` 可能长时间不返回，导致 WebUI 任务只停在
-        `start, voice name...`。这里用阻塞的 fake stream 复现该场景，
-        确认超时保护会让函数结束并返回 None。
+        In the field, network glitches, server throttling, or a mismatch
+        between voice language and text can make ``stream_sync()`` block for
+        a long time, leaving the WebUI task stuck at ``start, voice name...``.
+        We use a blocking fake stream here to reproduce that scenario and
+        confirm the timeout guard exits and returns None.
         """
 
         class _HangingCommunicate:
@@ -176,12 +194,15 @@ class TestVoiceService(unittest.TestCase):
             def get_srt(self):
                 return ""
 
-        with tempfile.TemporaryDirectory() as tmp_dir, patch.object(
-            vs.edge_tts, "Communicate", _HangingCommunicate
-        ), patch.object(vs.edge_tts, "SubMaker", _FakeSubMaker), patch.object(
-            vs.config,
-            "app",
-            dict(vs.config.app, edge_tts_timeout=0.05),
+        with (
+            tempfile.TemporaryDirectory() as tmp_dir,
+            patch.object(vs.edge_tts, "Communicate", _HangingCommunicate),
+            patch.object(vs.edge_tts, "SubMaker", _FakeSubMaker),
+            patch.object(
+                vs.config,
+                "app",
+                dict(vs.config.app, edge_tts_timeout=0.05),
+            ),
         ):
             voice_file = Path(tmp_dir) / "hanging-edge-tts.mp3"
             started_at = time.monotonic()
@@ -198,7 +219,9 @@ class TestVoiceService(unittest.TestCase):
         self.assertLess(elapsed, 2)
 
     def test_azure_tts_v2(self):
-        if not vs.config.azure.get("speech_key") or not vs.config.azure.get("speech_region"):
+        if not vs.config.azure.get("speech_key") or not vs.config.azure.get(
+            "speech_region"
+        ):
             self.skipTest("Azure speech key or region is not configured")
 
         voice_name = "zh-CN-XiaoxiaoMultilingualNeural-V2-Female"
@@ -213,7 +236,9 @@ class TestVoiceService(unittest.TestCase):
             )
             if not sub_maker:
                 self.fail("azure tts v2 failed")
-            vs.create_subtitle(sub_maker=sub_maker, text=text_zh, subtitle_file=subtitle_file)
+            vs.create_subtitle(
+                sub_maker=sub_maker, text=text_zh, subtitle_file=subtitle_file
+            )
             audio_duration = vs.get_audio_duration(sub_maker)
             print(f"voice: {voice_name}, audio duration: {audio_duration}s")
 
@@ -221,9 +246,10 @@ class TestVoiceService(unittest.TestCase):
 
     def test_gemini_tts_uses_legacy_submaker_fields(self):
         """
-        验证 Gemini TTS 在 edge_tts 7.x 环境下仍会返回项目兼容的字幕结构，
-        并且可以被 `subtitle_provider=edge` 的字幕生成链路直接消费，
-        避免再次回退 Whisper。
+        Verify that Gemini TTS still returns a project-compatible subtitle
+        structure on an edge_tts 7.x environment, and that the result can
+        be consumed directly by the ``subtitle_provider=edge`` subtitle
+        generation path so we do not fall back to Whisper again.
         """
 
         class _InlineData:
@@ -263,9 +289,13 @@ class TestVoiceService(unittest.TestCase):
         subtitle_file = f"{temp_dir}/tts-gemini-Zephyr.srt"
         text = "Gemini subtitle generation should work now. Testing multiple lines."
 
-        with patch("google.generativeai.configure"), patch(
-            "google.generativeai.GenerativeModel", _FakeModel
-        ), patch.object(vs.config, "app", dict(vs.config.app, gemini_api_key="test-key")):
+        with (
+            patch("google.generativeai.configure"),
+            patch("google.generativeai.GenerativeModel", _FakeModel),
+            patch.object(
+                vs.config, "app", dict(vs.config.app, gemini_api_key="test-key")
+            ),
+        ):
             sub_maker = vs.gemini_tts(
                 text=text,
                 voice_name="Zephyr",
@@ -289,8 +319,9 @@ class TestVoiceService(unittest.TestCase):
 
     def test_generate_subtitle_keeps_edge_provider_for_gemini_legacy_submaker(self):
         """
-        验证 Gemini TTS 返回的 legacy 字幕结构在 edge provider 下可以直接产出
-        SRT，不会因为匹配失败而回退到 Whisper。
+        Verify that the legacy subtitle structure returned by Gemini TTS can
+        produce SRT directly under the edge provider, instead of falling back
+        to Whisper because of a match failure.
         """
         script = "Gemini subtitle generation should work now. Testing multiple lines."
         sub_maker = vs.populate_legacy_submaker_with_full_text(
@@ -299,13 +330,18 @@ class TestVoiceService(unittest.TestCase):
             2.4,
         )
 
-        with tempfile.TemporaryDirectory() as tmp_dir, patch.object(
-            task_service.config,
-            "app",
-            dict(task_service.config.app, subtitle_provider="edge"),
-        ), patch("app.services.subtitle.create") as whisper_create, patch(
-            "app.utils.utils.task_dir",
-            lambda tid="": str(Path(tmp_dir) / tid) if tid else str(Path(tmp_dir)),
+        with (
+            tempfile.TemporaryDirectory() as tmp_dir,
+            patch.object(
+                task_service.config,
+                "app",
+                dict(task_service.config.app, subtitle_provider="edge"),
+            ),
+            patch("app.services.subtitle.create") as whisper_create,
+            patch(
+                "app.utils.utils.task_dir",
+                lambda tid="": str(Path(tmp_dir) / tid) if tid else str(Path(tmp_dir)),
+            ),
         ):
             task_id = "gemini-subtitle-edge-task"
             Path(tmp_dir, task_id).mkdir(parents=True, exist_ok=True)
@@ -321,14 +357,18 @@ class TestVoiceService(unittest.TestCase):
             self.assertTrue(Path(subtitle_path).exists())
             self.assertFalse(whisper_create.called)
             subtitle_content = Path(subtitle_path).read_text(encoding="utf-8")
-            self.assertIn("Gemini subtitle generation should work now", subtitle_content)
+            self.assertIn(
+                "Gemini subtitle generation should work now", subtitle_content
+            )
             self.assertIn("Testing multiple lines", subtitle_content)
 
     def test_script_split_keeps_thousand_separator_comma(self):
         """
-        Edge TTS 会把 "1,000 years" 作为连续文本返回。脚本断句时不能把
-        数字中间的英文逗号当成句子边界，否则字幕聚合会出现 issue #894
-        里的 sub_items 数量少于 script_lines，并错误回退 Whisper。
+        Edge TTS returns "1,000 years" as continuous text. When splitting the
+        script into sentences, the English comma inside a number must not be
+        treated as a sentence boundary. Otherwise subtitle aggregation would
+        hit the issue #894 case where ``sub_items`` count is lower than
+        ``script_lines``, causing an incorrect fallback to Whisper.
         """
         text = (
             "It takes about 1,000 years for a single drop of water to finish "
@@ -347,9 +387,10 @@ class TestVoiceService(unittest.TestCase):
 
     def test_edge_cue_aggregation_handles_thousand_separator_comma(self):
         """
-        复现 issue #894 的关键形态：Edge cues 中最后一句作为连续文本返回，
-        包含 `1,000 years`。脚本断句必须与 cues 聚合结果一致，不能把它
-        拆成两条字幕。
+        Reproduces the key shape of issue #894: the last sentence in the Edge
+        cues is returned as continuous text and contains ``1,000 years``. The
+        script splitter must agree with the cue aggregation and must not
+        split that into two subtitles.
         """
         text = (
             "The ocean isn't just sitting stil, it moves around the world like a massive "
@@ -362,8 +403,9 @@ class TestVoiceService(unittest.TestCase):
         script_lines = utils.split_string_by_punctuations(text)
         cues = []
         for index, line in enumerate(script_lines):
-            # Edge 的 cue content 经常没有脚本里的空格和标点布局，这里去掉空格
-            # 来模拟更严格的匹配场景。
+            # Edge cue content often lacks the spacing and punctuation layout
+            # of the original script, so strip spaces here to simulate the
+            # stricter matching scenario.
             cues.append(
                 SimpleNamespace(
                     content=line.replace(" ", ""),
@@ -392,4 +434,4 @@ class TestVoiceService(unittest.TestCase):
 if __name__ == "__main__":
     # python -m unittest test.services.test_voice.TestVoiceService.test_azure_tts_v1
     # python -m unittest test.services.test_voice.TestVoiceService.test_azure_tts_v2
-    unittest.main() 
+    unittest.main()

@@ -1,6 +1,6 @@
-# MoneyPrinterTurbo Test Directory
+# VideoGenAI Test Directory
 
-This directory contains unit tests for the **MoneyPrinterTurbo** project.
+This directory contains unit tests for the **VideoGenAI** project.
 
 ## Directory Structure
 

@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from app.config import config
 
-# 忽略 Pydantic 的特定警告
+# Suppress specific Pydantic warnings
 warnings.filterwarnings(
     "ignore",
     category=UserWarning,
@@ -59,10 +59,10 @@ class VideoParams(BaseModel):
     """
     {
       "video_subject": "",
-      "video_aspect": "横屏 16:9（西瓜视频）",
-      "voice_name": "女生-晓晓",
+      "video_aspect": "Landscape 16:9",
+      "voice_name": "Female-Xiaoxiao",
       "bgm_name": "random",
-      "font_name": "STHeitiMedium 黑体-中",
+      "font_name": "STHeitiMedium",
       "text_color": "#FFFFFF",
       "font_size": 60,
       "stroke_color": "#000000",
@@ -83,8 +83,10 @@ class VideoParams(BaseModel):
     video_materials: Optional[List[MaterialInfo]] = (
         None  # Materials used to generate the video
     )
-    
-    custom_audio_file: Optional[str] = None  # Custom audio file path, will ignore video_script and disable subtitle
+
+    custom_audio_file: Optional[str] = (
+        None  # Custom audio file path, will ignore video_script and disable subtitle
+    )
     video_language: Optional[str] = ""  # auto detect
 
     voice_name: Optional[str] = ""
@@ -95,7 +97,9 @@ class VideoParams(BaseModel):
     bgm_volume: Optional[float] = 0.2
 
     subtitle_enabled: Optional[bool] = True
-    subtitle_position: Optional[str] = config.ui.get("subtitle_position", "bottom")  # top, bottom, center, custom
+    subtitle_position: Optional[str] = config.ui.get(
+        "subtitle_position", "bottom"
+    )  # top, bottom, center, custom
     custom_position: float = config.ui.get("custom_position", 70.0)
     font_name: Optional[str] = "STHeitiMedium.ttc"
     text_fore_color: Optional[str] = "#FFFFFF"
@@ -143,13 +147,13 @@ class AudioRequest(BaseModel):
 class VideoScriptParams:
     """
     {
-      "video_subject": "春天的花海",
+      "video_subject": "A sea of spring flowers",
       "video_language": "",
       "paragraph_number": 1
     }
     """
 
-    video_subject: Optional[str] = "春天的花海"
+    video_subject: Optional[str] = "A sea of spring flowers"
     video_language: Optional[str] = ""
     paragraph_number: Optional[int] = 1
 
@@ -163,9 +167,9 @@ class VideoTermsParams:
     }
     """
 
-    video_subject: Optional[str] = "春天的花海"
+    video_subject: Optional[str] = "A sea of spring flowers"
     video_script: Optional[str] = (
-        "春天的花海，如诗如画般展现在眼前。万物复苏的季节里，大地披上了一袭绚丽多彩的盛装。金黄的迎春、粉嫩的樱花、洁白的梨花、艳丽的郁金香……"
+        "A sea of spring flowers, picturesque as a poem. In this season of renewal, the earth puts on a vibrant and colorful gown. Golden forsythias, soft pink cherry blossoms, white pear blossoms, brilliant tulips..."
     )
     amount: Optional[int] = 5
 
@@ -259,7 +263,7 @@ class VideoScriptResponse(BaseResponse):
                 "status": 200,
                 "message": "success",
                 "data": {
-                    "video_script": "春天的花海，是大自然的一幅美丽画卷。在这个季节里，大地复苏，万物生长，花朵争相绽放，形成了一片五彩斑斓的花海..."
+                    "video_script": "A sea of spring flowers is a beautiful painting by nature. In this season, the earth comes back to life, everything grows, and flowers bloom in competition, forming a riot of color..."
                 },
             },
         }
@@ -287,7 +291,7 @@ class BgmRetrieveResponse(BaseResponse):
                         {
                             "name": "output013.mp3",
                             "size": 1891269,
-                            "file": "/MoneyPrinterTurbo/resource/songs/output013.mp3",
+                            "file": "/VideoGenAI/resource/songs/output013.mp3",
                         }
                     ]
                 },
@@ -301,9 +305,10 @@ class BgmUploadResponse(BaseResponse):
             "example": {
                 "status": 200,
                 "message": "success",
-                "data": {"file": "/MoneyPrinterTurbo/resource/songs/example.mp3"},
+                "data": {"file": "/VideoGenAI/resource/songs/example.mp3"},
             },
         }
+
 
 class VideoMaterialRetrieveResponse(BaseResponse):
     class Config:
@@ -316,12 +321,13 @@ class VideoMaterialRetrieveResponse(BaseResponse):
                         {
                             "name": "example.mp4",
                             "size": 12345678,
-                            "file": "/MoneyPrinterTurbo/resource/videos/example.mp4",
+                            "file": "/VideoGenAI/resource/videos/example.mp4",
                         }
                     ]
                 },
             },
         }
+
 
 class VideoMaterialUploadResponse(BaseResponse):
     class Config:
@@ -330,7 +336,7 @@ class VideoMaterialUploadResponse(BaseResponse):
                 "status": 200,
                 "message": "success",
                 "data": {
-                    "file": "/MoneyPrinterTurbo/resource/videos/example.mp4",
+                    "file": "/VideoGenAI/resource/videos/example.mp4",
                 },
             },
         }

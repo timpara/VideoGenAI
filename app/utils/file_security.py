@@ -7,10 +7,13 @@ def resolve_path_within_directory(
     *,
     require_file: bool = True,
 ) -> str:
-    # 用户传入的路径可能是文件名、相对路径、绝对路径，也可能夹带 `../`。
-    # 这里统一解析成真实路径，并用 commonpath 判断它是否仍在允许目录内。
-    # 这样比简单判断字符串前缀可靠，可以覆盖符号链接、重复分隔符、相对路径
-    # 等场景，适用于上传目录、素材目录、任务产物目录这类白名单目录。
+    # The path supplied by the user may be a filename, a relative path, an
+    # absolute path, or it may contain `../` traversal segments. Resolve it
+    # to a real path here and use `commonpath` to confirm it still lives
+    # inside the allowed directory. This is more reliable than a simple
+    # string prefix check and covers symlinks, repeated separators, relative
+    # paths, and so on. It applies to allow-list directories such as upload,
+    # asset, and task-output directories.
     if not unsafe_path:
         raise ValueError("empty path is not allowed")
 
@@ -23,7 +26,8 @@ def resolve_path_within_directory(
     try:
         common_path = os.path.commonpath([base_dir_real, resolved_path])
     except ValueError as exc:
-        # Windows 下不同盘符会触发 ValueError，这类路径一定不属于允许目录。
+        # On Windows, different drive letters trigger ValueError. Such paths
+        # cannot belong to the allowed directory.
         raise ValueError("path is outside the allowed directory") from exc
 
     if common_path != base_dir_real:

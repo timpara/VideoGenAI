@@ -15,9 +15,11 @@ def fadeout_transition(clip: Clip, t: float) -> Clip:
 def slidein_transition(clip: Clip, t: float, side: str) -> Clip:
     width, height = clip.size
 
-    # MoviePy 内置 SlideIn 在当前这条处理链里对全屏素材不稳定，
-    # 会出现“逻辑上应用了转场，但画面几乎看不出变化”的情况。
-    # 这里改成显式黑底 + 位移动画，保证转场效果可见且行为可控。
+    # MoviePy's built-in SlideIn is unstable in the current processing
+    # pipeline when applied to full-screen footage: the transition can be
+    # "logically applied" yet barely visible on screen. Use an explicit
+    # black background plus a positional animation here so the transition
+    # stays visible and behaves predictably.
     def position(current_time: float):
         progress = min(max(current_time / max(t, 0.001), 0), 1)
 
@@ -35,9 +37,9 @@ def slidein_transition(clip: Clip, t: float, side: str) -> Clip:
         clip.duration
     )
     moving_clip = clip.with_position(position)
-    return CompositeVideoClip([background, moving_clip], size=(width, height)).with_duration(
-        clip.duration
-    )
+    return CompositeVideoClip(
+        [background, moving_clip], size=(width, height)
+    ).with_duration(clip.duration)
 
 
 # SlideOut
@@ -45,14 +47,13 @@ def slideout_transition(clip: Clip, t: float, side: str) -> Clip:
     width, height = clip.size
     transition_start = max(clip.duration - t, 0)
 
-    # SlideOut 同样改成显式位移，保证片段末尾能稳定滑出画面。
+    # SlideOut also uses an explicit positional animation so the clip
+    # reliably slides out of the frame at the end.
     def position(current_time: float):
         if current_time <= transition_start:
             return (0, 0)
 
-        progress = min(
-            max((current_time - transition_start) / max(t, 0.001), 0), 1
-        )
+        progress = min(max((current_time - transition_start) / max(t, 0.001), 0), 1)
 
         if side == "left":
             return (-width * progress, 0)
@@ -68,6 +69,6 @@ def slideout_transition(clip: Clip, t: float, side: str) -> Clip:
         clip.duration
     )
     moving_clip = clip.with_position(position)
-    return CompositeVideoClip([background, moving_clip], size=(width, height)).with_duration(
-        clip.duration
-    )
+    return CompositeVideoClip(
+        [background, moving_clip], size=(width, height)
+    ).with_duration(clip.duration)

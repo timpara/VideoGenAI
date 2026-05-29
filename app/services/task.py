@@ -71,7 +71,7 @@ def save_script_data(task_id, video_script, video_terms, params):
 
 
 def generate_audio(task_id, params, video_script):
-    '''
+    """
     Generate audio for the video script.
     If a custom audio file is provided, it will be used directly.
     There will be no subtitle maker object returned in this case.
@@ -80,10 +80,11 @@ def generate_audio(task_id, params, video_script):
         - audio_file: path to the generated or provided audio file
         - audio_duration: duration of the audio in seconds
         - sub_maker: subtitle maker object if TTS is used, None otherwise
-    '''
+    """
     logger.info("\n\n## generating audio")
-    # /audio 和 /subtitle 请求模型不包含 custom_audio_file，
-    # 这里统一做兼容读取，避免直调接口时抛属性错误。
+    # The /audio and /subtitle request models do not include
+    # custom_audio_file, so read it tolerantly here, to avoid an
+    # AttributeError when those endpoints are called directly.
     custom_audio_file = getattr(params, "custom_audio_file", None)
     if not custom_audio_file or not os.path.exists(custom_audio_file):
         if custom_audio_file:
@@ -123,14 +124,15 @@ def generate_audio(task_id, params, video_script):
             return None, None, None
         return custom_audio_file, audio_duration, None
 
+
 def generate_subtitle(task_id, params, video_script, sub_maker, audio_file):
-    '''
+    """
     Generate subtitle for the video script.
     If subtitle generation is disabled or no subtitle maker is provided, it will return an empty string.
     Otherwise, it will generate the subtitle using the specified provider.
     Returns:
         - subtitle_path: path to the generated subtitle file
-    '''
+    """
     logger.info("\n\n## generating subtitle")
     if not params.subtitle_enabled or sub_maker is None:
         return ""
@@ -335,8 +337,9 @@ def start(task_id, params: VideoParams, stop_at: str = "video"):
 
     sm.state.update_task(task_id, state=const.TASK_STATE_PROCESSING, progress=50)
 
-    # 仅完整视频生成流程才需要处理视频拼接模式；
-    # 这样可以避免 /subtitle 和 /audio 这类请求访问不存在的字段。
+    # Only the full video generation flow needs to deal with the video
+    # concat mode; this avoids /subtitle and /audio style requests
+    # accessing fields that do not exist on their schemas.
     if type(params.video_concat_mode) is str:
         params.video_concat_mode = VideoConcatMode(params.video_concat_mode)
 
@@ -355,18 +358,23 @@ def start(task_id, params: VideoParams, stop_at: str = "video"):
 
     # 7. Cross-post to TikTok/Instagram (if enabled)
     cross_post_results = []
-    if upload_post.upload_post_service.is_configured() and upload_post.upload_post_service.auto_upload:
+    if (
+        upload_post.upload_post_service.is_configured()
+        and upload_post.upload_post_service.auto_upload
+    ):
         logger.info("\n\n## cross-posting videos to TikTok/Instagram")
         for video_path in final_video_paths:
             result = upload_post.cross_post_video(
                 video_path=video_path,
-                title=params.video_subject or "Check out this video! #shorts #viral"
+                title=params.video_subject or "Check out this video! #shorts #viral",
             )
             cross_post_results.append(result)
-            if result.get('success'):
+            if result.get("success"):
                 logger.info(f"✅ Cross-posted: {video_path}")
             else:
-                logger.warning(f"⚠️ Failed to cross-post: {video_path} - {result.get('error', 'Unknown error')}")
+                logger.warning(
+                    f"⚠️ Failed to cross-post: {video_path} - {result.get('error', 'Unknown error')}"
+                )
 
     kwargs = {
         "videos": final_video_paths,
@@ -388,7 +396,7 @@ def start(task_id, params: VideoParams, stop_at: str = "video"):
 if __name__ == "__main__":
     task_id = "task_id"
     params = VideoParams(
-        video_subject="金钱的作用",
+        video_subject="The role of money",
         voice_name="zh-CN-XiaoyiNeural-Female",
         voice_rate=1.0,
     )

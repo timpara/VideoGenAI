@@ -2,12 +2,12 @@
 FROM python:3.11-slim-bullseye
 
 # Set the working directory in the container
-WORKDIR /MoneyPrinterTurbo
+WORKDIR /VideoGenAI
 
-# 设置/MoneyPrinterTurbo目录权限为777
-RUN chmod 777 /MoneyPrinterTurbo
+# Make the /VideoGenAI directory writable (permission 777)
+RUN chmod 777 /VideoGenAI
 
-ENV PYTHONPATH="/MoneyPrinterTurbo"
+ENV PYTHONPATH="/VideoGenAI"
 
 # Install system dependencies with domestic mirrors first for stability
 RUN echo "deb http://mirrors.aliyun.com/debian bullseye main" > /etc/apt/sources.list && \
@@ -65,10 +65,10 @@ EXPOSE 8501
 CMD ["streamlit", "run", "./webui/Main.py","--browser.serverAddress=127.0.0.1","--server.enableCORS=True","--browser.gatherUsageStats=False"]
 
 # 1. Build the Docker image using the following command
-# docker build -t moneyprinterturbo .
+# docker build -t videogenai .
 
 # 2. Run the Docker container using the following command
 ## For Linux or MacOS:
-# docker run -v $(pwd)/config.toml:/MoneyPrinterTurbo/config.toml -v $(pwd)/storage:/MoneyPrinterTurbo/storage -p 8501:8501 moneyprinterturbo
+# docker run -v $(pwd)/config.toml:/VideoGenAI/config.toml -v $(pwd)/storage:/VideoGenAI/storage -p 8501:8501 videogenai
 ## For Windows:
-# docker run -v ${PWD}/config.toml:/MoneyPrinterTurbo/config.toml -v ${PWD}/storage:/MoneyPrinterTurbo/storage -p 8501:8501 moneyprinterturbo
+# docker run -v ${PWD}/config.toml:/VideoGenAI/config.toml -v ${PWD}/storage:/VideoGenAI/storage -p 8501:8501 videogenai

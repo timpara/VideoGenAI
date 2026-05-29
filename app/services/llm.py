@@ -16,9 +16,10 @@ _DEPRECATED_GEMINI_MODELS = {"gemini-pro", "gemini-1.0-pro"}
 
 
 def _normalize_text_response(content, llm_provider: str) -> str:
-    # 不同 LLM SDK 在异常或被拦截场景下，可能返回 None、空字符串，
-    # 甚至返回非字符串对象。这里统一做兜底校验，避免后续直接调用
-    # `.replace()` 时抛出 `NoneType` 之类的属性错误。
+    # Different LLM SDKs, in error or filtered scenarios, may return
+    # None, an empty string, or even a non-string object. Apply a
+    # unified safeguard here, to avoid the later `.replace()` call
+    # raising an AttributeError such as `NoneType has no attribute`.
     if content is None:
         raise ValueError(f"[{llm_provider}] returned empty text content")
 
@@ -35,10 +36,11 @@ def _normalize_text_response(content, llm_provider: str) -> str:
 
 
 def _extract_chat_completion_text(response, llm_provider: str) -> str:
-    # OpenAI 兼容接口在异常场景下，可能返回没有 choices、
-    # 或者 choices/message/content 为空的响应对象。
-    # 这里统一做结构校验，避免出现 `NoneType is not subscriptable`
-    # 这类底层属性访问错误。
+    # OpenAI-compatible endpoints may, in error scenarios, return
+    # response objects without `choices`, or with empty
+    # choices/message/content. Validate the structure here, to avoid
+    # low-level attribute errors such as
+    # `NoneType is not subscriptable`.
     choices = getattr(response, "choices", None)
     if not choices:
         raise ValueError(f"[{llm_provider}] returned empty choices")
@@ -119,8 +121,9 @@ def _generate_response(prompt: str) -> str:
                 api_key = config.app.get("gemini_api_key")
                 model_name = config.app.get("gemini_model_name")
                 base_url = config.app.get("gemini_base_url", "")
-                # Gemini 旧模型名已经陆续下线，这里自动兼容历史配置，
-                # 避免用户沿用旧值时直接收到 404。
+                # Older Gemini model names have been retired over time;
+                # auto-bridge old configs here, so users sticking with
+                # legacy values do not immediately get a 404.
                 if not model_name:
                     model_name = _DEFAULT_GEMINI_MODEL
                 elif model_name in _DEPRECATED_GEMINI_MODELS:
@@ -175,38 +178,38 @@ def _generate_response(prompt: str) -> str:
                     base_url = config.app.get("pollinations_base_url", "")
                     if not base_url:
                         base_url = "https://text.pollinations.ai/openai"
-                    model_name = config.app.get("pollinations_model_name", "openai-fast")
-                   
+                    model_name = config.app.get(
+                        "pollinations_model_name", "openai-fast"
+                    )
+
                     # Prepare the payload
                     payload = {
                         "model": model_name,
-                        "messages": [
-                            {"role": "user", "content": prompt}
-                        ],
-                        "seed": 101  # Optional but helps with reproducibility
+                        "messages": [{"role": "user", "content": prompt}],
+                        "seed": 101,  # Optional but helps with reproducibility
                     }
-                    
+
                     # Optional parameters if configured
                     if config.app.get("pollinations_private"):
                         payload["private"] = True
                     if config.app.get("pollinations_referrer"):
                         payload["referrer"] = config.app.get("pollinations_referrer")
-                    
-                    headers = {
-                        "Content-Type": "application/json"
-                    }
-                    
+
+                    headers = {"Content-Type": "application/json"}
+
                     # Make the API request
                     response = requests.post(base_url, headers=headers, json=payload)
                     response.raise_for_status()
                     result = response.json()
-                    
+
                     if result and "choices" in result and len(result["choices"]) > 0:
                         content = result["choices"][0]["message"]["content"]
                         return _normalize_text_response(content, llm_provider)
                     else:
-                        raise Exception(f"[{llm_provider}] returned an invalid response format")
-                        
+                        raise Exception(
+                            f"[{llm_provider}] returned an invalid response format"
+                        )
+
                 except requests.exceptions.RequestException as e:
                     raise Exception(f"[{llm_provider}] request failed: {str(e)}")
                 except Exception as e:
@@ -215,7 +218,11 @@ def _generate_response(prompt: str) -> str:
             elif llm_provider == "litellm":
                 model_name = config.app.get("litellm_model_name")
 
-            if llm_provider not in ["pollinations", "ollama", "litellm"]:  # Skip validation for providers that don't require API key
+            if llm_provider not in [
+                "pollinations",
+                "ollama",
+                "litellm",
+            ]:  # Skip validation for providers that don't require API key
                 if not api_key:
                     raise ValueError(
                         f"{llm_provider}: api_key is not set, please set it in the config.toml file."
@@ -260,7 +267,11 @@ def _generate_response(prompt: str) -> str:
                 if not base_url:
                     genai.configure(api_key=api_key, transport="rest")
                 else:
-                    genai.configure(api_key=api_key, transport="rest", client_options={'api_endpoint': base_url})
+                    genai.configure(
+                        api_key=api_key,
+                        transport="rest",
+                        client_options={"api_endpoint": base_url},
+                    )
 
                 generation_config = {
                     "temperature": 0.5,
@@ -324,16 +335,18 @@ def _generate_response(prompt: str) -> str:
                 )
                 result = response.json()
                 logger.info(result)
-                return _normalize_text_response(result["result"]["response"], llm_provider)
+                return _normalize_text_response(
+                    result["result"]["response"], llm_provider
+                )
 
             if llm_provider == "ernie":
                 response = requests.post(
-                    "https://aip.baidubce.com/oauth/2.0/token", 
+                    "https://aip.baidubce.com/oauth/2.0/token",
                     params={
                         "grant_type": "client_credentials",
                         "client_id": api_key,
                         "client_secret": secret_key,
-                    }
+                    },
                 )
                 access_token = response.json().get("access_token")
                 url = f"{base_url}?access_token={access_token}"
@@ -378,10 +391,14 @@ def _generate_response(prompt: str) -> str:
                 return _extract_chat_completion_text(response, llm_provider)
 
             if llm_provider == "azure":
-                # Azure OpenAI SDK 使用 `azure_endpoint` 和 `api_version` 生成专用请求地址，
-                # 不能继续复用下面普通 OpenAI-compatible 的 `base_url` 初始化逻辑。
-                # 这里在 Azure 分支内完成请求并立即返回，避免客户端被后续 fallback
-                # 覆盖，导致用户配置的 Azure 凭证通过校验但实际请求没有被使用。
+                # The Azure OpenAI SDK uses `azure_endpoint` and
+                # `api_version` to build a dedicated request URL, so it
+                # cannot reuse the generic OpenAI-compatible `base_url`
+                # initialization logic below. Complete the request
+                # inside the Azure branch and return immediately, so the
+                # client is not overwritten by the later fallback that
+                # would otherwise let the user's Azure credentials pass
+                # validation while the actual request is never used.
                 logger.info(f"requesting azure chat completion, model: {model_name}")
                 client = AzureOpenAI(
                     api_key=api_key,
@@ -405,7 +422,7 @@ def _generate_response(prompt: str) -> str:
                     )
 
             if llm_provider == "modelscope":
-                content = ''
+                content = ""
                 client = OpenAI(
                     api_key=api_key,
                     base_url=base_url,
@@ -414,7 +431,7 @@ def _generate_response(prompt: str) -> str:
                     model=model_name,
                     messages=[{"role": "user", "content": prompt}],
                     extra_body={"enable_thinking": False},
-                    stream=True
+                    stream=True,
                 )
                 if response:
                     for chunk in response:
@@ -423,10 +440,10 @@ def _generate_response(prompt: str) -> str:
                         delta = chunk.choices[0].delta
                         if delta and delta.content:
                             content += delta.content
-                    
+
                     if not content.strip():
                         raise ValueError("Empty content in stream response")
-                    
+
                     return _normalize_text_response(content, llm_provider)
                 else:
                     raise Exception(f"[{llm_provider}] returned an empty response")
@@ -515,6 +532,8 @@ Generate a script for a video, depending on the subject of the video.
                 logging.error("gpt returned an empty response")
 
             # g4f may return an error message
+            # The string below is the literal error returned by the upstream
+            # service ("daily quota exhausted") - do not translate.
             if final_script and "当日额度已消耗完" in final_script:
                 raise ValueError(final_script)
 
@@ -584,9 +603,12 @@ Please note that you must use English for generating video search terms; Chinese
                     try:
                         search_terms = json.loads(match.group())
                     except Exception as e:
-                        # 这里保留重试流程，但必须记录 LLM 返回的非标准 JSON，
-                        # 否则后续排查搜索词为空时无法定位
-                        # 是模型格式问题还是解析逻辑问题。
+                        # Keep the retry loop here, but the
+                        # non-standard JSON returned by the LLM must be
+                        # logged. Otherwise, when search terms come
+                        # back empty later, it is impossible to tell
+                        # whether the problem is the model output
+                        # format or the parsing logic.
                         logger.warning(f"failed to generate video terms: {str(e)}")
 
         if search_terms and len(search_terms) > 0:
@@ -599,7 +621,7 @@ Please note that you must use English for generating video search terms; Chinese
 
 
 if __name__ == "__main__":
-    video_subject = "生命的意义是什么"
+    video_subject = "What is the meaning of life"
     script = generate_script(
         video_subject=video_subject, language="zh-CN", paragraph_number=1
     )
@@ -610,4 +632,3 @@ if __name__ == "__main__":
     )
     print("######################")
     print(search_terms)
-    

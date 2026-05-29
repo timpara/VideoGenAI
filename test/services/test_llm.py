@@ -25,11 +25,12 @@ class TestLiteLLMProvider(unittest.TestCase):
 
     def test_litellm_provider_returns_normalized_text(self):
         """
-        验证 LiteLLM provider 的主路径不依赖真实网络和私有 API key。
+        Verify that the LiteLLM provider's main path does not depend on a real
+        network or a private API key.
 
-        这里用 fake module 注入 `sys.modules`，直接覆盖动态 import 的
-        `litellm.completion()`，确保测试稳定覆盖 `_generate_response()` 里的
-        litellm 分支。
+        We inject a fake module into ``sys.modules`` to override the dynamic
+        import of ``litellm.completion()``, giving stable coverage of the
+        litellm branch inside ``_generate_response()``.
         """
         self._use_litellm_provider()
 
@@ -75,9 +76,10 @@ class TestLiteLLMProvider(unittest.TestCase):
 
     def test_litellm_provider_handles_empty_message(self):
         """
-        某些 OpenAI-compatible 网关在内容过滤或安全拦截时会返回
-        HTTP 200，但 `choices[0].message` 为 None。这里必须返回
-        可诊断的错误，而不是抛出 AttributeError。
+        Some OpenAI-compatible gateways return HTTP 200 with
+        ``choices[0].message`` set to None when content filtering or safety
+        rules trigger. The code must return a diagnosable error here instead
+        of raising ``AttributeError``.
         """
         self._use_litellm_provider()
 
@@ -117,12 +119,13 @@ class TestLiteLLMProvider(unittest.TestCase):
         self.assertIn("api_key is not set", result)
         self.assertNotIn("litellm", result.lower())
 
-
     def test_azure_provider_uses_azure_client_directly(self):
         """
-        Azure OpenAI 的鉴权、endpoint 和 api-version 都由 AzureOpenAI 客户端处理。
-        这个测试覆盖 issue #892：azure 分支必须直接调用 AzureOpenAI 创建的客户端，
-        不能继续落入普通 OpenAI-compatible 分支，否则会丢失 Azure 专用请求配置。
+        Authentication, endpoint, and api-version for Azure OpenAI are all
+        handled by the AzureOpenAI client. This test covers issue #892: the
+        azure branch must call the AzureOpenAI client directly and not fall
+        through to the generic OpenAI-compatible branch, otherwise Azure-only
+        request settings would be lost.
         """
         config.app["llm_provider"] = "azure"
         config.app["azure_api_key"] = "azure-key"
@@ -166,8 +169,10 @@ class TestLiteLLMProvider(unittest.TestCase):
 
     def test_g4f_provider_requires_explicit_opt_in(self):
         """
-        g4f 存在供应链和稳定性风险，不能因为用户把 provider 写成 g4f
-        就默认加载第三方包并访问逆向接口，必须显式启用。
+        g4f carries supply-chain and stability risks, so we must not load the
+        third-party package and call its reverse-engineered endpoints just
+        because the user set provider to ``g4f``. It has to be enabled
+        explicitly.
         """
         config.app["llm_provider"] = "g4f"
         config.app["enable_g4f"] = False

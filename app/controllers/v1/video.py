@@ -27,13 +27,13 @@ from app.models.schema import (
     TaskResponse,
     TaskVideoRequest,
     VideoMaterialUploadResponse,
-    VideoMaterialRetrieveResponse
+    VideoMaterialRetrieveResponse,
 )
 from app.services import state as sm
 from app.services import task as tm
 from app.utils import file_security, utils
 
-# 认证依赖项
+# Authentication dependency
 # router = new_router(dependencies=[Depends(base.verify_token)])
 router = new_router()
 
@@ -46,7 +46,7 @@ _max_concurrent_tasks = config.app.get("max_concurrent_tasks", 5)
 _max_queued_tasks = config.app.get("max_queued_tasks", 100)
 
 redis_url = f"redis://:{_redis_password}@{_redis_host}:{_redis_port}/{_redis_db}"
-# 根据配置选择合适的任务管理器
+# Select an appropriate task manager based on configuration
 if _enable_redis:
     task_manager = RedisTaskManager(
         max_concurrent_tasks=_max_concurrent_tasks,
@@ -61,8 +61,9 @@ else:
 
 
 def _sanitize_upload_filename(filename: str, request_id: str) -> str:
-    # 浏览器或客户端有时会附带目录信息，甚至可能夹带 ../ 这类穿越片段。
-    # 这里只保留纯文件名，避免上传接口把文件写到目标目录之外。
+    # Browsers or clients sometimes include directory information, and may
+    # even slip in `../` traversal fragments. Keep only the bare filename so
+    # the upload endpoint cannot write outside the target directory.
     normalized_name = (filename or "").replace("\\", "/").split("/")[-1].strip()
     if not normalized_name or normalized_name in {".", ".."}:
         raise HttpException(
@@ -73,7 +74,9 @@ def _sanitize_upload_filename(filename: str, request_id: str) -> str:
     return normalized_name
 
 
-def _resolve_path_within_directory(base_dir: str, unsafe_path: str, request_id: str) -> str:
+def _resolve_path_within_directory(
+    base_dir: str, unsafe_path: str, request_id: str
+) -> str:
     try:
         return file_security.resolve_path_within_directory(base_dir, unsafe_path)
     except ValueError as exc:
@@ -87,6 +90,7 @@ def _resolve_path_within_directory(base_dir: str, unsafe_path: str, request_id: 
             message=f"{request_id}: invalid file path",
         )
 
+
 def _task_file_to_uri(file: str, endpoint: str, task_dir: str, request_id: str) -> str:
     if not isinstance(file, str):
         return file
@@ -97,8 +101,10 @@ def _task_file_to_uri(file: str, endpoint: str, task_dir: str, request_id: str) 
     try:
         resolved_path = file_security.resolve_path_within_directory(task_dir, file)
     except ValueError as exc:
-        # 任务状态理论上只应保存任务目录内的产物路径。这里不再继续拼接 URL，
-        # 避免把异常路径包装成可访问链接；同时保留原值，便于排查历史脏数据。
+        # Task state should only ever store output paths inside the task
+        # directory. If that invariant is violated, stop building the URL so
+        # an unsafe path is not wrapped into an accessible link; keep the raw
+        # value so legacy dirty data can still be investigated.
         logger.warning(
             f"skip unsafe task output path, request_id: {request_id}, path: {file}, "
             f"error: {str(exc)}"
@@ -163,10 +169,14 @@ def create_task(
             task_id=task_id, status_code=400, message=f"{request_id}: {str(e)}"
         )
 
+
 from fastapi import Query
 
+
 @router.get("/tasks", response_model=TaskQueryResponse, summary="Get all tasks")
-def get_all_tasks(request: Request, page: int = Query(1, ge=1), page_size: int = Query(10, ge=1)):
+def get_all_tasks(
+    request: Request, page: int = Query(1, ge=1), page_size: int = Query(10, ge=1)
+):
     request_id = base.get_task_id(request)
     tasks, total = sm.state.get_all_tasks(page, page_size)
 
@@ -177,7 +187,6 @@ def get_all_tasks(request: Request, page: int = Query(1, ge=1), page_size: int =
         "page_size": page_size,
     }
     return utils.get_response(200, response)
-
 
 
 @router.get(
@@ -249,8 +258,9 @@ def get_bgm_list(request: Request):
             {
                 "name": filename,
                 "size": os.path.getsize(file),
-                # 只返回文件名，避免把服务器绝对路径暴露给调用方。
-                # 服务端后续会把该文件名解析回 songs 白名单目录。
+                # Return the filename only, so the server's absolute path is
+                # not leaked to callers. The server later resolves the name
+                # back to the songs allow-list directory.
                 "file": filename,
             }
         )
@@ -282,8 +292,11 @@ def upload_bgm_file(request: Request, file: UploadFile = File(...)):
         "", status_code=400, message=f"{request_id}: Only *.mp3 files can be uploaded"
     )
 
+
 @router.get(
-    "/video_materials", response_model=VideoMaterialRetrieveResponse, summary="Retrieve local video materials"
+    "/video_materials",
+    response_model=VideoMaterialRetrieveResponse,
+    summary="Retrieve local video materials",
 )
 def get_video_materials_list(request: Request):
     allowed_suffixes = ("mp4", "mov", "avi", "flv", "mkv", "jpg", "jpeg", "png")
@@ -291,8 +304,10 @@ def get_video_materials_list(request: Request):
     files = []
     for suffix in allowed_suffixes:
         files.extend(glob.glob(os.path.join(local_videos_dir, f"*.{suffix}")))
-    # 文件系统枚举顺序不稳定，直接返回会导致“顺序拼接”在不同机器或不同
-    # 时刻表现不一致。这里统一按文件名排序，至少保证服务端返回顺序可预测。
+    # The file-system enumeration order is unstable, so returning it as-is
+    # makes "sequential concatenation" behave differently across machines or
+    # runs. Sort by filename here so the server response order is at least
+    # predictable.
     files.sort(key=lambda file_path: os.path.basename(file_path).lower())
     video_materials_list = []
     for file in files:
@@ -301,8 +316,10 @@ def get_video_materials_list(request: Request):
             {
                 "name": filename,
                 "size": os.path.getsize(file),
-                # 与 BGM 一样，只返回文件名；创建任务时再在 local_videos
-                # 白名单目录内解析，避免 API 泄露宿主机绝对路径。
+                # Same as for BGM: return only the filename. When a task is
+                # created the name is resolved inside the local_videos
+                # allow-list directory so the API does not leak host absolute
+                # paths.
                 "file": filename,
             }
         )
@@ -321,7 +338,8 @@ def upload_video_material_file(request: Request, file: UploadFile = File(...)):
     # check file ext
     allowed_suffixes = ("mp4", "mov", "avi", "flv", "mkv", "jpg", "jpeg", "png")
     normalized_filename = safe_filename.lower()
-    # 统一按小写扩展名校验，兼容 .MOV 这类大写后缀文件。
+    # Validate against lower-cased extensions so files with upper-case
+    # suffixes like .MOV are accepted as well.
     if normalized_filename.endswith(allowed_suffixes):
         local_videos_dir = utils.storage_dir("local_videos", create=True)
         save_path = os.path.join(local_videos_dir, safe_filename)
@@ -334,8 +352,11 @@ def upload_video_material_file(request: Request, file: UploadFile = File(...)):
         return utils.get_response(200, response)
 
     raise HttpException(
-        "", status_code=400, message=f"{request_id}: Only files with extensions {', '.join(allowed_suffixes)} can be uploaded"
+        "",
+        status_code=400,
+        message=f"{request_id}: Only files with extensions {', '.join(allowed_suffixes)} can be uploaded",
     )
+
 
 @router.get("/stream/{file_path:path}")
 async def stream_video(request: Request, file_path: str):

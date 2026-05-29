@@ -21,7 +21,9 @@ model = None
 def create(audio_file, subtitle_file: str = ""):
     global model
     if WhisperModel is None:
-        logger.warning("faster_whisper not available, skipping whisper subtitle generation")
+        logger.warning(
+            "faster_whisper not available, skipping whisper subtitle generation"
+        )
         return ""
     if not model:
         model_path = f"{utils.root_dir()}/models/whisper-{model_size}"
@@ -42,7 +44,7 @@ def create(audio_file, subtitle_file: str = ""):
                 f"********************************************\n"
                 f"this may be caused by network issue. \n"
                 f"please download the model manually and put it in the 'models' folder. \n"
-                f"see [README.md FAQ](https://github.com/harry0703/MoneyPrinterTurbo) for more details.\n"
+                f"see [README.md FAQ](https://github.com/timpara/VideoGenAI) for more details.\n"
                 f"********************************************\n\n"
             )
             return None

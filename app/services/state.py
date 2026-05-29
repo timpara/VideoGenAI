@@ -77,9 +77,11 @@ class RedisState(BaseState):
             batch_size = len(keys)
             total += batch_size
 
-            # Redis SCAN 是分批返回 key。分页切片必须基于“当前批次起始索引”
-            # 计算，而不能用累积后的 total 反推，否则第一页会切到空数组，
-            # 第二页也可能只返回部分数据。
+            # Redis SCAN returns keys in batches. The pagination slice must
+            # be computed from the "current batch start index", not derived
+            # from the cumulative total, otherwise the first page can be
+            # sliced to an empty array and the second page may only return
+            # partial data.
             if batch_start < end and total > start:
                 slice_start = max(0, start - batch_start)
                 slice_end = min(batch_size, end - batch_start)
@@ -91,8 +93,9 @@ class RedisState(BaseState):
                     }
                     tasks.append(task)
 
-            # 即使当前页已经取满，也要继续 SCAN 到 cursor=0，
-            # 因为调用方需要准确 total 来渲染分页信息。
+            # Even when the current page is already full, keep scanning
+            # until cursor == 0, because the caller needs an accurate total
+            # to render pagination info.
             if cursor == 0:
                 break
         return tasks, total

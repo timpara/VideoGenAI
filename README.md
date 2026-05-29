@@ -1,76 +1,73 @@
 <div align="center">
-<h1 align="center">MoneyPrinterTurbo 💸</h1>
+<h1 align="center">VideoGenAI 💸</h1>
 
 <p align="center">
-  <a href="https://github.com/harry0703/MoneyPrinterTurbo/stargazers"><img src="https://img.shields.io/github/stars/harry0703/MoneyPrinterTurbo.svg?style=for-the-badge" alt="Stargazers"></a>
-  <a href="https://github.com/harry0703/MoneyPrinterTurbo/issues"><img src="https://img.shields.io/github/issues/harry0703/MoneyPrinterTurbo.svg?style=for-the-badge" alt="Issues"></a>
-  <a href="https://github.com/harry0703/MoneyPrinterTurbo/network/members"><img src="https://img.shields.io/github/forks/harry0703/MoneyPrinterTurbo.svg?style=for-the-badge" alt="Forks"></a>
-  <a href="https://github.com/harry0703/MoneyPrinterTurbo/blob/main/LICENSE"><img src="https://img.shields.io/github/license/harry0703/MoneyPrinterTurbo.svg?style=for-the-badge" alt="License"></a>
+  <a href="https://github.com/timpara/VideoGenAI/stargazers"><img src="https://img.shields.io/github/stars/timpara/VideoGenAI.svg?style=for-the-badge" alt="Stargazers"></a>
+  <a href="https://github.com/timpara/VideoGenAI/issues"><img src="https://img.shields.io/github/issues/timpara/VideoGenAI.svg?style=for-the-badge" alt="Issues"></a>
+  <a href="https://github.com/timpara/VideoGenAI/network/members"><img src="https://img.shields.io/github/forks/timpara/VideoGenAI.svg?style=for-the-badge" alt="Forks"></a>
+  <a href="https://github.com/timpara/VideoGenAI/blob/main/LICENSE"><img src="https://img.shields.io/github/license/timpara/VideoGenAI.svg?style=for-the-badge" alt="License"></a>
 </p>
-<br>
-<h3>简体中文 | <a href="README-en.md">English</a></h3>
-<div align="center">
-  <a href="https://trendshift.io/repositories/8731" target="_blank"><img src="https://trendshift.io/api/badge/repositories/8731" alt="harry0703%2FMoneyPrinterTurbo | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
-</div>
-<br>
-只需提供一个视频 <b>主题</b> 或 <b>关键词</b> ，就可以全自动生成视频文案、视频素材、视频字幕、视频背景音乐，然后合成一个高清的短视频。
-<br>
 
-<h4>Web界面</h4>
+<h3>English | <a href="README-zh.md">简体中文</a></h3>
 
-![](docs/webui.jpg)
+Simply provide a <b>topic</b> or <b>keyword</b> for a video, and it will automatically generate the video copy, video
+materials, video subtitles, and video background music before synthesizing a high-definition short video.
 
-<h4>API界面</h4>
+### WebUI
+
+![](docs/webui-en.jpg)
+
+### API Interface
 
 ![](docs/api.jpg)
 
 </div>
 
-## 功能特性 🎯
+## Features 🎯
 
-- [x] 完整的 **MVC架构**，代码 **结构清晰**，易于维护，支持 `API` 和 `Web界面`
-- [x] 支持视频文案 **AI自动生成**，也可以**自定义文案**
-- [x] 支持多种 **高清视频** 尺寸
-    - [x] 竖屏 9:16，`1080x1920`
-    - [x] 横屏 16:9，`1920x1080`
-- [x] 支持 **批量视频生成**，可以一次生成多个视频，然后选择一个最满意的
-- [x] 支持 **视频片段时长** 设置，方便调节素材切换频率
-- [x] 支持 **中文** 和 **英文** 视频文案
-- [x] 支持 **多种语音** 合成，可 **实时试听** 效果
-- [x] 支持 **字幕生成**，可以调整 `字体`、`位置`、`颜色`、`大小`，同时支持`字幕描边`设置
-- [x] 支持 **背景音乐**，随机或者指定音乐文件，可设置`背景音乐音量`
-- [x] 视频素材来源 **高清**，而且 **无版权**，也可以使用自己的 **本地素材**
-- [x] 支持 **OpenAI**、**Moonshot**、**Azure**、**gpt4free**、**one-api**、**通义千问**、**Google Gemini**、**Ollama**、**DeepSeek**、**MiniMax**、 **文心一言**, **Pollinations**、**ModelScope** 等多种模型接入
-    - 中国用户建议使用 **DeepSeek** 或 **Moonshot** 作为大模型提供商（国内可直接访问，不需要VPN。注册就送额度，基本够用）
+- [x] Complete **MVC architecture**, **clearly structured** code, easy to maintain, supports both `API`
+  and `Web interface`
+- [x] Supports **AI-generated** video copy, as well as **customized copy**
+- [x] Supports various **high-definition video** sizes
+    - [x] Portrait 9:16, `1080x1920`
+    - [x] Landscape 16:9, `1920x1080`
+- [x] Supports **batch video generation**, allowing the creation of multiple videos at once, then selecting the most
+  satisfactory one
+- [x] Supports setting the **duration of video clips**, facilitating adjustments to material switching frequency
+- [x] Supports video copy in both **Chinese** and **English**
+- [x] Supports **multiple voice** synthesis, with **real-time preview** of effects
+- [x] Supports **subtitle generation**, with adjustable `font`, `position`, `color`, `size`, and also
+  supports `subtitle outlining`
+- [x] Supports **background music**, either random or specified music files, with adjustable `background music volume`
+- [x] Video material sources are **high-definition** and **royalty-free**, and you can also use your own **local materials**
+- [x] Supports integration with various models such as **OpenAI**, **Moonshot**, **Azure**, **gpt4free**, **one-api**, **Qwen**, **Google Gemini**, **Ollama**, **DeepSeek**, **MiniMax**, **ERNIE**, **Pollinations**, **ModelScope** and more
 
-## 视频演示 📺
+## Video Demos 📺
 
-### 竖屏 9:16
+### Portrait 9:16
 
 <table>
 <thead>
 <tr>
-<th align="center"><g-emoji class="g-emoji" alias="arrow_forward">▶️</g-emoji> 《如何增加生活的乐趣》</th>
-<th align="center"><g-emoji class="g-emoji" alias="arrow_forward">▶️</g-emoji> 《金钱的作用》<br>更真实的合成声音</th>
-<th align="center"><g-emoji class="g-emoji" alias="arrow_forward">▶️</g-emoji> 《生命的意义是什么》</th>
+<th align="center"><g-emoji class="g-emoji" alias="arrow_forward">▶️</g-emoji> How to Add Fun to Your Life </th>
+<th align="center"><g-emoji class="g-emoji" alias="arrow_forward">▶️</g-emoji> What is the Meaning of Life</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td align="center"><video src="https://github.com/harry0703/MoneyPrinterTurbo/assets/4928832/a84d33d5-27a2-4aba-8fd0-9fb2bd91c6a6"></video></td>
-<td align="center"><video src="https://github.com/harry0703/MoneyPrinterTurbo/assets/4928832/af2f3b0b-002e-49fe-b161-18ba91c055e8"></video></td>
 <td align="center"><video src="https://github.com/harry0703/MoneyPrinterTurbo/assets/4928832/112c9564-d52b-4472-99ad-970b75f66476"></video></td>
 </tr>
 </tbody>
 </table>
 
-### 横屏 16:9
+### Landscape 16:9
 
 <table>
 <thead>
 <tr>
-<th align="center"><g-emoji class="g-emoji" alias="arrow_forward">▶️</g-emoji>《生命的意义是什么》</th>
-<th align="center"><g-emoji class="g-emoji" alias="arrow_forward">▶️</g-emoji>《为什么要运动》</th>
+<th align="center"><g-emoji class="g-emoji" alias="arrow_forward">▶️</g-emoji> What is the Meaning of Life</th>
+<th align="center"><g-emoji class="g-emoji" alias="arrow_forward">▶️</g-emoji> Why Exercise</th>
 </tr>
 </thead>
 <tbody>
@@ -81,111 +78,103 @@
 </tbody>
 </table>
 
-## 配置要求 📦
+## System Requirements 📦
 
-- 建议系统：Windows 10 或 MacOS 11.0 以上，或主流 Linux 发行版
-- GPU 不是必需项，但如果你希望本地转录、更快的视频处理或更顺畅的批量生成体验，建议使用带显存的独立显卡
+- Recommended platforms: Windows 10+, macOS 11+, or a mainstream Linux distribution
+- A GPU is not required, but it is recommended if you want faster local transcription, faster video processing, or smoother batch generation
 
-| 项目 | 最低配置 | 推荐配置 | 理想配置 |
+| Item | Minimum | Recommended | Optimal |
 | --- | --- | --- | --- |
-| CPU | 4 核 | 6 到 8 核 | 8 核及以上 |
-| RAM | 4 GB | 8 GB | 16 GB 及以上 |
-| GPU | 非必须 | 4 GB 显存及以上 | 8 GB 显存及以上 |
+| CPU | 4 cores | 6 to 8 cores | 8+ cores |
+| RAM | 4 GB | 8 GB | 16+ GB |
+| GPU | Not required | 4+ GB VRAM | 8+ GB VRAM |
 
-- 如果你主要依赖云端 LLM、云端 TTS 和在线素材源，CPU 与内存比 GPU 更重要
-- 如果你启用 `faster-whisper`、批量生成或更重的本地处理链路，GPU 会明显提升速度
+- If you mainly rely on cloud LLMs, cloud TTS, and online material sources, CPU and RAM matter more than GPU
+- If you use `faster-whisper`, batch generation, or heavier local processing, a GPU will improve throughput noticeably
+
+## Quick Start 🚀
+
+### Recommended Paths
+
+- Windows users: use the one-click package first for the fastest local trial
+- MacOS / Linux users: use `uv sync --frozen` for the primary local setup path
+- If you want a more isolated runtime: use Docker deployment
+
+### Run in Google Colab
+Want to try VideoGenAI without setting up a local environment? Run it directly in Google Colab!
+
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/timpara/VideoGenAI/blob/main/docs/VideoGenAI.ipynb)
 
 
-## 快速开始 🚀
+### Windows
 
-### 推荐使用方式
+The downloadable package is still the older `v1.2.6` bundled build. After downloading, run `update.bat` first to bring it up to the latest code.
 
-- Windows 用户：优先使用一键启动包，适合快速体验
-- MacOS / Linux 用户：优先使用 `uv sync --frozen` 进行本地部署
-- 想要隔离运行环境：优先使用 Docker 部署
+Google Drive (v1.2.6): https://drive.google.com/file/d/1HsbzfT7XunkrCrHw5ncUjFX8XX4zAuUh/view?usp=sharing
 
-### 在 Google Colab 中运行
-免去本地环境配置，点击直接在 Google Colab 中快速体验 MoneyPrinterTurbo
+After downloading, it is recommended to **double-click** `update.bat` first to update to the **latest code**, then double-click `start.bat` to launch
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/harry0703/MoneyPrinterTurbo/blob/main/docs/MoneyPrinterTurbo.ipynb)
+After launching, the browser will open automatically (if it opens blank, it is recommended to use **Chrome** or **Edge**)
 
+### Other Systems
 
-### Windows一键启动包
+One-click startup packages have not been created yet. See the **Installation & Deployment** section below. It is recommended to use **docker** for deployment, which is more convenient.
 
-下载一键启动包，解压直接使用（路径不要有 **中文**、**特殊字符**、**空格**）
-当前提供的安装包仍是 `v1.2.6` 的旧打包版本，建议下载后先执行 `update.bat` 更新到最新代码。
+## Installation & Deployment 📥
 
-- 百度网盘（v1.2.6）: https://pan.baidu.com/s/1wg0UaIyXpO3SqIpaq790SQ?pwd=sbqx 提取码: sbqx
-- Google Drive (v1.2.6): https://drive.google.com/file/d/1HsbzfT7XunkrCrHw5ncUjFX8XX4zAuUh/view?usp=sharing
+### Prerequisites
 
-下载后，建议先**双击执行** `update.bat` 更新到**最新代码**，然后双击 `start.bat` 启动
-
-启动后，会自动打开浏览器（如果打开是空白，建议换成 **Chrome** 或者 **Edge** 打开）
-
-## 安装部署 📥
-
-### 前提条件
-
-- 尽量不要使用 **中文路径**，避免出现一些无法预料的问题
-- 请确保你的 **网络** 是正常的，VPN需要打开`全局流量`模式
-
-#### ① 克隆代码
+#### ① Clone the Project
 
 ```shell
-git clone https://github.com/harry0703/MoneyPrinterTurbo.git
+git clone https://github.com/timpara/VideoGenAI.git
 ```
 
-#### ② 修改配置文件（可选，建议启动后也可以在 WebUI 里面配置）
+#### ② Modify the Configuration File
 
-- 将 `config.example.toml` 文件复制一份，命名为 `config.toml`
-- 按照 `config.toml` 文件中的说明，配置好 `pexels_api_keys` 和 `llm_provider`，并根据 llm_provider 对应的服务商，配置相关的
-  API Key
+- Copy the `config.example.toml` file and rename it to `config.toml`
+- Follow the instructions in the `config.toml` file to configure `pexels_api_keys` and `llm_provider`, and according to
+  the llm_provider's service provider, set up the corresponding API Key
 
-### Docker部署 🐳
+### Docker Deployment 🐳
 
-#### ① 启动Docker
+#### ① Launch the Docker Container
 
-如果未安装 Docker，请先安装 https://www.docker.com/products/docker-desktop/
+If you haven't installed Docker, please install it first https://www.docker.com/products/docker-desktop/
+If you are using a Windows system, please refer to Microsoft's documentation:
 
-如果是Windows系统，请参考微软的文档：
-
-1. https://learn.microsoft.com/zh-cn/windows/wsl/install
-2. https://learn.microsoft.com/zh-cn/windows/wsl/tutorials/wsl-containers
+1. https://learn.microsoft.com/en-us/windows/wsl/install
+2. https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-containers
 
 ```shell
-cd MoneyPrinterTurbo
+cd VideoGenAI
 docker-compose up
 ```
 
-> 注意：最新版的docker安装时会自动以插件的形式安装docker compose，启动命令调整为docker compose up
+> Note：The latest version of docker will automatically install docker compose in the form of a plug-in, and the start command is adjusted to `docker compose up `
 
-#### ② 访问Web界面
+#### ② Access the Web Interface
 
-打开浏览器，访问 http://0.0.0.0:8501
+Open your browser and visit http://0.0.0.0:8501
 
-#### ③ 访问API文档
+#### ③ Access the API Interface
 
-打开浏览器，访问 http://0.0.0.0:8080/docs 或者 http://0.0.0.0:8080/redoc
+Open your browser and visit http://0.0.0.0:8080/docs Or http://0.0.0.0:8080/redoc
 
-### 手动部署 📦
+### Manual Deployment 📦
 
-> 视频教程
+#### ① Create a Python Virtual Environment
 
-- 完整的使用演示：https://v.douyin.com/iFhnwsKY/
-- 如何在Windows上部署：https://v.douyin.com/iFyjoW3M
-
-#### ① 创建虚拟环境
-
-推荐使用 [uv](https://docs.astral.sh/uv/) 管理 Python 环境和依赖，默认使用 Python `3.11`
+It is recommended to use [uv](https://docs.astral.sh/uv/) to manage the Python environment and dependencies, with Python `3.11` as the default runtime.
 
 ```shell
-git clone https://github.com/harry0703/MoneyPrinterTurbo.git
-cd MoneyPrinterTurbo
+git clone https://github.com/timpara/VideoGenAI.git
+cd VideoGenAI
 uv python install 3.11
 uv sync --frozen
 ```
 
-如果你暂时不使用 `uv`，也可以继续使用 `venv + pip`
+If you are not using `uv` yet, you can still use `venv + pip`.
 
 ```shell
 python3.11 -m venv .venv
@@ -193,35 +182,40 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-说明：
-- `pyproject.toml` 是主依赖定义文件
-- `uv.lock` 是锁文件，建议默认执行 `uv sync --frozen`
-- `requirements.txt` 仅保留给旧的 `pip` 安装方式兼容使用
+Notes:
+- `pyproject.toml` is now the primary dependency manifest.
+- `uv.lock` pins the resolved environment, so `uv sync --frozen` is recommended by default.
+- `requirements.txt` is kept only for legacy `pip`-based installation.
 
-#### ② 安装好 ImageMagick
+#### ② Install ImageMagick
 
-- Windows:
-    - 下载 https://imagemagick.org/script/download.php 选择Windows版本，切记一定要选择 **静态库** 版本，比如
-      ImageMagick-7.1.1-32-Q16-x64-**static**.exe
-    - 安装下载好的 ImageMagick，**注意不要修改安装路径**
-    - 修改 `配置文件 config.toml` 中的 `imagemagick_path` 为你的 **实际安装路径**
+###### Windows:
 
-- MacOS:
-  ```shell
-  brew install imagemagick
-  ````
-- Ubuntu
-  ```shell
-  sudo apt-get install imagemagick
-  ```
-- CentOS
-  ```shell
-  sudo yum install ImageMagick
-  ```
+- Download https://imagemagick.org/script/download.php Choose the Windows version, make sure to select the **static library** version, such as ImageMagick-7.1.1-32-Q16-x64-**static**.exe
+- Install the downloaded ImageMagick, **do not change the installation path**
+- Modify the `config.toml` configuration file, set `imagemagick_path` to your actual installation path
 
-#### ③ 启动Web界面 🌐
+###### MacOS:
 
-注意需要到 MoneyPrinterTurbo 项目 `根目录` 下执行以下命令
+```shell
+brew install imagemagick
+```
+
+###### Ubuntu
+
+```shell
+sudo apt-get install imagemagick
+```
+
+###### CentOS
+
+```shell
+sudo yum install ImageMagick
+```
+
+#### ③ Launch the Web Interface 🌐
+
+Note that you need to execute the following commands in the `root directory` of the VideoGenAI project
 
 ###### Windows
 
@@ -229,7 +223,7 @@ pip install -r requirements.txt
 uv run streamlit run ./webui/Main.py --browser.gatherUsageStats=False
 ```
 
-如果你已经手动激活了虚拟环境，也可以直接执行：
+If you have already activated the virtual environment manually, you can still run:
 
 ```bat
 webui.bat
@@ -241,80 +235,87 @@ webui.bat
 uv run streamlit run ./webui/Main.py --browser.gatherUsageStats=False
 ```
 
-如果你已经手动激活了虚拟环境，也可以直接执行：
+If you have already activated the virtual environment manually, you can still run:
 
 ```shell
 sh webui.sh
 ```
 
-启动后，会自动打开浏览器（如果打开是空白，建议换成 **Chrome** 或者 **Edge** 打开）
+After launching, the browser will open automatically
 
-#### ④ 启动API服务 🚀
+#### ④ Launch the API Service 🚀
 
 ```shell
 uv run python main.py
 ```
 
-如果你已经手动激活了虚拟环境，也可以直接执行：
+If you have already activated the virtual environment manually, you can still run:
 
 ```shell
 python main.py
 ```
 
-## 特别感谢 🙏
+## Special Thanks 🙏
 
-由于该项目的 **部署** 和 **使用**，对于一些小白用户来说，还是 **有一定的门槛**，在此特别感谢
-**录咖（AI智能 多媒体服务平台）** 网站基于该项目，提供的免费`AI视频生成器`服务，可以不用部署，直接在线使用，非常方便。
+Due to the **deployment** and **usage** of this project, there is a certain threshold for some beginner users. We would
+like to express our special thanks to
 
-- 中文版：https://reccloud.cn
-- 英文版：https://reccloud.com
+**RecCloud (AI-Powered Multimedia Service Platform)** for providing a free `AI Video Generator` service based on this
+project. It allows for online use without deployment, which is very convenient.
 
-![](docs/reccloud.cn.jpg)
+- Chinese version: https://reccloud.cn
+- English version: https://reccloud.com
 
-## 感谢赞助 🙏
+![](docs/reccloud.com.jpg)
 
-感谢佐糖 https://picwish.cn 对该项目的支持和赞助，使得该项目能够持续的更新和维护。
+## Thanks for Sponsorship 🙏
 
-佐糖专注于**图像处理领域**，提供丰富的**图像处理工具**，将复杂操作极致简化，真正实现让图像处理更简单。
+Thanks to Picwish https://picwish.com for supporting and sponsoring this project, enabling continuous updates and maintenance.
 
-![picwish.jpg](docs/picwish.jpg)
+Picwish focuses on the **image processing field**, providing a rich set of **image processing tools** that extremely simplify complex operations, truly making image processing easier.
 
-启动后，可以查看 `API文档` http://127.0.0.1:8080/docs 或者 http://127.0.0.1:8080/redoc 直接在线调试接口，快速体验。
+![picwish.jpg](docs/picwish.com.jpg)
 
-## 语音合成 🗣
+After launching, you can view the `API documentation` at http://127.0.0.1:8080/docs and directly test the interface
+online for a quick experience.
 
-所有支持的声音列表，可以查看：[声音列表](./docs/voice-list.txt)
+## Voice Synthesis 🗣
 
-2024-04-16 v1.1.2 新增了9种Azure的语音合成声音，需要配置API KEY，该声音合成的更加真实。
+A list of all supported voices can be viewed here: [Voice List](./docs/voice-list.txt)
 
-## 字幕生成 📜
+2024-04-16 v1.1.2 Added 9 new Azure voice synthesis voices that require API KEY configuration. These voices sound more realistic.
 
-当前支持2种字幕生成方式：
+## Subtitle Generation 📜
 
-- **edge**: 生成`速度快`，性能更好，对电脑配置没有要求，但是质量可能不稳定
-- **whisper**: 生成`速度慢`，性能较差，对电脑配置有一定要求，但是`质量更可靠`。
+Currently, there are 2 ways to generate subtitles:
 
-可以修改 `config.toml` 配置文件中的 `subtitle_provider` 进行切换
+- **edge**: Faster generation speed, better performance, no specific requirements for computer configuration, but the
+  quality may be unstable
+- **whisper**: Slower generation speed, poorer performance, specific requirements for computer configuration, but more
+  reliable quality
 
-建议使用 `edge` 模式，如果生成的字幕质量不好，再切换到 `whisper` 模式
+You can switch between them by modifying the `subtitle_provider` in the `config.toml` configuration file
 
-> 注意：
+It is recommended to use `edge` mode, and switch to `whisper` mode if the quality of the subtitles generated is not
+satisfactory.
 
-1. whisper 模式下需要到 HuggingFace 下载一个模型文件，大约 3GB 左右，请确保网络通畅
-2. 如果留空，表示不生成字幕。
+> Note:
+>
+> 1. In whisper mode, you need to download a model file from HuggingFace, about 3GB in size, please ensure good internet connectivity
+> 2. If left blank, it means no subtitles will be generated.
 
-> 由于国内无法访问 HuggingFace，可以使用以下方法下载 `whisper-large-v3` 的模型文件
+> Since HuggingFace is not accessible in China, you can use the following methods to download the `whisper-large-v3` model file
 
-下载地址：
+Download links:
 
-- 百度网盘: https://pan.baidu.com/s/11h3Q6tsDtjQKTjUu3sc5cA?pwd=xjs9
-- 夸克网盘：https://pan.quark.cn/s/3ee3d991d64b
+- Baidu Netdisk: https://pan.baidu.com/s/11h3Q6tsDtjQKTjUu3sc5cA?pwd=xjs9
+- Quark Netdisk: https://pan.quark.cn/s/3ee3d991d64b
 
-模型下载后解压，整个目录放到 `.\MoneyPrinterTurbo\models` 里面，
-最终的文件路径应该是这样: `.\MoneyPrinterTurbo\models\whisper-large-v3`
+After downloading the model, extract it and place the entire directory in `.\VideoGenAI\models`,
+The final file path should look like this: `.\VideoGenAI\models\whisper-large-v3`
 
 ```
-MoneyPrinterTurbo  
+VideoGenAI
   ├─models
   │   └─whisper-large-v3
   │          config.json
@@ -324,81 +325,96 @@ MoneyPrinterTurbo
   │          vocabulary.json
 ```
 
-## 背景音乐 🎵
+## Background Music 🎵
 
-用于视频的背景音乐，位于项目的 `resource/songs` 目录下。
-> 当前项目里面放了一些默认的音乐，来自于 YouTube 视频，如有侵权，请删除。
+Background music for videos is located in the project's `resource/songs` directory.
+> The current project includes some default music from YouTube videos. If there are copyright issues, please delete
+> them.
 
-## 字幕字体 🅰
+## Subtitle Fonts 🅰
 
-用于视频字幕的渲染，位于项目的 `resource/fonts` 目录下，你也可以放进去自己的字体。
+Fonts for rendering video subtitles are located in the project's `resource/fonts` directory, and you can also add your
+own fonts.
 
-## 常见问题 🤔
+## Common Questions 🤔
 
 ### ❓RuntimeError: No ffmpeg exe could be found
 
-通常情况下，ffmpeg 会被自动下载，并且会被自动检测到。
-但是如果你的环境有问题，无法自动下载，可能会遇到如下错误：
+Normally, ffmpeg will be automatically downloaded and detected.
+However, if your environment has issues preventing automatic downloads, you may encounter the following error:
 
 ```
 RuntimeError: No ffmpeg exe could be found.
 Install ffmpeg on your system, or set the IMAGEIO_FFMPEG_EXE environment variable.
 ```
 
-此时你可以从 https://www.gyan.dev/ffmpeg/builds/ 下载ffmpeg，解压后，设置 `ffmpeg_path` 为你的实际安装路径即可。
+In this case, you can download ffmpeg from https://www.gyan.dev/ffmpeg/builds/, unzip it, and set `ffmpeg_path` to your
+actual installation path.
 
 ```toml
 [app]
-# 请根据你的实际路径设置，注意 Windows 路径分隔符为 \\
+# Please set according to your actual path, note that Windows path separators are \\
 ffmpeg_path = "C:\\Users\\harry\\Downloads\\ffmpeg.exe"
 ```
 
-### ❓ImageMagick的安全策略阻止了与临时文件@/tmp/tmpur5hyyto.txt相关的操作
+### ❓ImageMagick is not installed on your computer
 
-可以在ImageMagick的配置文件policy.xml中找到这些策略。
-这个文件通常位于 /etc/ImageMagick-`X`/ 或 ImageMagick 安装目录的类似位置。
-修改包含`pattern="@"`的条目，将`rights="none"`更改为`rights="read|write"`以允许对文件的读写操作。
+[issue 33](https://github.com/timpara/VideoGenAI/issues/33)
+
+1. Follow the `example configuration` provided `download address` to
+   install https://imagemagick.org/archive/binaries/ImageMagick-7.1.1-30-Q16-x64-static.exe, using the static library
+2. Do not install in a path with Chinese characters to avoid unpredictable issues
+
+[issue 54](https://github.com/timpara/VideoGenAI/issues/54)
+
+For Linux systems, you can manually install it, refer to https://cn.linux-console.net/?p=16978
+
+### ❓ImageMagick's security policy prevents operations related to temporary file @/tmp/tmpur5hyyto.txt
+
+You can find these policies in ImageMagick's configuration file policy.xml.
+This file is usually located in /etc/ImageMagick-`X`/ or a similar location in the ImageMagick installation directory.
+Modify the entry containing `pattern="@"`, change `rights="none"` to `rights="read|write"` to allow read and write operations on files.
 
 ### ❓OSError: [Errno 24] Too many open files
 
-这个问题是由于系统打开文件数限制导致的，可以通过修改系统的文件打开数限制来解决。
+This issue is caused by the system's limit on the number of open files. You can solve it by modifying the system's file open limit.
 
-查看当前限制
+Check the current limit:
 
 ```shell
 ulimit -n
 ```
 
-如果过低，可以调高一些，比如
+If it's too low, you can increase it, for example:
 
 ```shell
 ulimit -n 10240
 ```
 
-### ❓Whisper 模型下载失败，出现如下错误
+### ❓Whisper model download failed, with the following error
 
 LocalEntryNotfoundEror: Cannot find an appropriate cached snapshotfolderfor the specified revision on the local disk and
 outgoing trafic has been disabled.
 To enablerepo look-ups and downloads online, pass 'local files only=False' as input.
 
-或者
+or
 
 An error occurred while synchronizing the model Systran/faster-whisper-large-v3 from the Hugging Face Hub:
 An error happened while trying to locate the files on the Hub and we cannot find the appropriate snapshot folder for the
 specified revision on the local disk. Please check your internet connection and try again.
 Trying to load the model directly from the local cache, if it exists.
 
-解决方法：[点击查看如何从网盘手动下载模型](#%E5%AD%97%E5%B9%95%E7%94%9F%E6%88%90-)
+Solution: [Click to see how to manually download the model from netdisk](#subtitle-generation-)
 
-## 反馈建议 📢
+## Feedback & Suggestions 📢
 
-- 可以提交 [issue](https://github.com/harry0703/MoneyPrinterTurbo/issues)
-  或者 [pull request](https://github.com/harry0703/MoneyPrinterTurbo/pulls)。
+- You can submit an [issue](https://github.com/timpara/VideoGenAI/issues) or
+  a [pull request](https://github.com/timpara/VideoGenAI/pulls).
 
-## 许可证 📝
+## License 📝
 
-点击查看 [`LICENSE`](LICENSE) 文件
+Click to view the [`LICENSE`](LICENSE) file
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=harry0703/MoneyPrinterTurbo&type=Date)](https://star-history.com/#harry0703/MoneyPrinterTurbo&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=timpara/VideoGenAI&type=Date)](https://star-history.com/#timpara/VideoGenAI&Date)

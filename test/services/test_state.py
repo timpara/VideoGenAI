@@ -45,11 +45,13 @@ class TestRedisState(unittest.TestCase):
 
     def test_get_all_tasks_paginates_across_scan_batches(self):
         """
-        Redis SCAN 分批返回 key 时，分页切片必须按当前批次起始位置计算。
+        When Redis SCAN returns keys in batches, the pagination slice must be
+        computed from the start position of the current batch.
 
-        这个用例复现 PR #890 描述的 18 条任务、page_size=10 场景：
-        第一批 10 条，第二批 8 条。旧逻辑第一页会返回空列表，第二页
-        只返回 2 条；修复后第一页返回 10 条，第二页返回剩余 8 条。
+        This case reproduces the 18-tasks / page_size=10 scenario described in
+        PR #890: first batch of 10, second batch of 8. The old logic returned
+        an empty list for page 1 and only 2 items for page 2. After the fix,
+        page 1 returns 10 items and page 2 returns the remaining 8.
         """
         state = self._build_state([10, 8])
 

@@ -18,9 +18,11 @@ _api_key_lock = threading.Lock()
 
 
 def _get_tls_verify() -> bool:
-    # 默认开启 TLS 证书校验，防止素材搜索和下载过程被中间人篡改。
-    # 仅在企业代理、自签证书等明确需要的场景下，允许用户通过
-    # `config.toml` 显式设置 `tls_verify = false` 临时关闭。
+    # TLS certificate verification is enabled by default, to prevent
+    # man-in-the-middle tampering during asset search and download. Only in
+    # explicit scenarios such as corporate proxies or self-signed
+    # certificates may the user temporarily disable it by setting
+    # `tls_verify = false` in `config.toml`.
     tls_verify = config.app.get("tls_verify", True)
     if isinstance(tls_verify, str):
         tls_verify = tls_verify.strip().lower() not in ("0", "false", "no", "off")

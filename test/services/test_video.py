@@ -1,4 +1,3 @@
-
 import unittest
 import os
 import shutil
@@ -12,6 +11,7 @@ from unittest.mock import patch
 from moviepy import (
     VideoFileClip,
 )
+
 # add project root to python path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from app.config import config
@@ -42,8 +42,10 @@ class TestSecurityControls(unittest.TestCase):
 
     def test_task_query_returns_relative_task_url_without_mutating_state(self):
         """
-        endpoint 未显式配置时，任务查询接口不能使用 Host 派生绝对 URL，
-        也不能把展示 URL 回写到任务状态里，否则不同 Host 查询会污染结果。
+        When endpoint is not explicitly configured, the task query API must
+        not build an absolute URL from the Host header, and must not write
+        the display URL back into the task state, otherwise queries from
+        different hosts would pollute each other's results.
         """
         task_id = "security-task-url"
         task_dir = utils.task_dir(task_id)
@@ -61,7 +63,9 @@ class TestSecurityControls(unittest.TestCase):
 
             response = video_controller.get_task(_FakeRequest(), task_id=task_id)
 
-            self.assertEqual(response["data"]["videos"], [f"/tasks/{task_id}/final-1.mp4"])
+            self.assertEqual(
+                response["data"]["videos"], [f"/tasks/{task_id}/final-1.mp4"]
+            )
             self.assertEqual(sm.state.get_task(task_id)["videos"], [video_path])
         finally:
             sm.state.delete_task(task_id)
@@ -69,8 +73,10 @@ class TestSecurityControls(unittest.TestCase):
 
     def test_in_memory_task_manager_rejects_when_queue_is_full(self):
         """
-        并发数用尽后，等待队列必须有硬上限。这里用 max_concurrent_tasks=0
-        强制任务进入队列，验证超过 max_queued_tasks 时会拒绝继续入队。
+        Once the concurrency budget is exhausted, the waiting queue must
+        have a hard ceiling. Here we force tasks into the queue with
+        ``max_concurrent_tasks=0`` to verify that exceeding
+        ``max_queued_tasks`` rejects further enqueue attempts.
         """
         manager = InMemoryTaskManager(max_concurrent_tasks=0, max_queued_tasks=1)
 
@@ -79,13 +85,14 @@ class TestSecurityControls(unittest.TestCase):
         with self.assertRaises(TaskQueueFullError):
             manager.add_task(lambda: None)
 
+
 class TestVideoService(unittest.TestCase):
     def setUp(self):
         self.test_img_path = os.path.join(resources_dir, "1.png")
-    
+
     def tearDown(self):
         pass
-    
+
     def test_preprocess_video(self):
         if not os.path.exists(self.test_img_path):
             self.fail(f"test image not found: {self.test_img_path}")
@@ -125,8 +132,10 @@ class TestVideoService(unittest.TestCase):
 
     def test_preprocess_video_rejects_material_outside_local_videos(self):
         """
-        local 素材路径来自 API 参数，不能允许任意绝对路径进入 MoviePy。
-        这里验证非 local_videos 白名单目录内的路径会被跳过，避免任意文件读取。
+        Local material paths come from API parameters, so arbitrary absolute
+        paths must not be allowed into MoviePy. This verifies that paths
+        outside the ``local_videos`` allowlist directory are skipped to
+        prevent arbitrary file reads.
         """
         m = MaterialInfo(provider="local", url=self.test_img_path)
 
@@ -136,8 +145,9 @@ class TestVideoService(unittest.TestCase):
 
     def test_get_bgm_file_accepts_song_directory_filename(self):
         """
-        BGM 列表接口现在只暴露文件名；生成视频时应能把文件名安全解析回
-        resource/songs 白名单目录，保持正常使用路径可用。
+        The BGM list API now exposes only the filename. When generating a
+        video, the code must safely resolve the filename back into the
+        ``resource/songs`` allowlist directory so normal usage still works.
         """
         song_dir = utils.song_dir()
         bgm_path = os.path.join(song_dir, "test-safe-bgm.mp3")
@@ -151,36 +161,44 @@ class TestVideoService(unittest.TestCase):
 
     def test_get_bgm_file_rejects_path_outside_song_directory(self):
         """
-        用户传入的 bgm_file 不能直接作为本地路径打开，否则可能读取系统文件。
-        即使外部文件存在，也必须因为不在 songs 目录内被拒绝。
+        A user-supplied ``bgm_file`` must not be opened directly as a local
+        path, otherwise arbitrary system files could be read. Even when an
+        external file exists, it must be rejected because it sits outside
+        the songs directory.
         """
         with tempfile.NamedTemporaryFile(suffix=".mp3") as temp_bgm:
             self.assertEqual(vd.get_bgm_file(bgm_file=temp_bgm.name), "")
 
     def test_get_ffmpeg_binary_uses_configured_env_path(self):
-        """配置中显式指定 ffmpeg 时，应优先使用该路径。"""
-        with patch.dict(os.environ, {"IMAGEIO_FFMPEG_EXE": "/tmp/custom-ffmpeg"}, clear=True):
+        """When ffmpeg is explicitly configured, that path must take priority."""
+        with patch.dict(
+            os.environ, {"IMAGEIO_FFMPEG_EXE": "/tmp/custom-ffmpeg"}, clear=True
+        ):
             self.assertEqual(vd.get_ffmpeg_binary(), "/tmp/custom-ffmpeg")
 
     def test_get_ffmpeg_binary_falls_back_to_imageio_ffmpeg(self):
         """
-        Windows 便携包里系统 PATH 可能没有 ffmpeg，但 moviepy 依赖的
-        imageio-ffmpeg 通常会提供可执行文件。这里验证该兜底路径可用。
+        On the Windows portable bundle, the system PATH may not contain
+        ffmpeg, but moviepy's dependency ``imageio-ffmpeg`` usually ships an
+        executable. This verifies that fallback path works.
         """
         fake_imageio_ffmpeg = types.SimpleNamespace(
             get_ffmpeg_exe=lambda: "/tmp/bundled-ffmpeg"
         )
 
-        with patch.dict(os.environ, {}, clear=True), patch.object(
-            vd.shutil, "which", return_value=None
-        ), patch.dict(sys.modules, {"imageio_ffmpeg": fake_imageio_ffmpeg}):
+        with (
+            patch.dict(os.environ, {}, clear=True),
+            patch.object(vd.shutil, "which", return_value=None),
+            patch.dict(sys.modules, {"imageio_ffmpeg": fake_imageio_ffmpeg}),
+        ):
             self.assertEqual(vd.get_ffmpeg_binary(), "/tmp/bundled-ffmpeg")
 
     def test_open_video_clip_quietly_suppresses_moviepy_stdout(self):
         """
-        MoviePy 2.1.x 的 FFMPEG_VideoReader 会直接向 stdout 打印 metadata
-        和 ffmpeg 命令。项目服务层应屏蔽这类依赖库噪声，避免用户把
-        `audio_found: False` 误判为最终视频没有音频。
+        MoviePy 2.1.x's ``FFMPEG_VideoReader`` prints metadata and the
+        ffmpeg command directly to stdout. The service layer should suppress
+        this dependency noise so users do not misread ``audio_found: False``
+        as the final video lacking audio.
         """
         video_path = os.path.join(resources_dir, "1.png.mp4")
         if not os.path.exists(video_path):
@@ -199,8 +217,10 @@ class TestVideoService(unittest.TestCase):
 
     def test_combine_videos_closes_audio_clip_when_duration_read_fails(self):
         """
-        `combine_videos()` 只需要读取旁白音频时长。即使读取 duration
-        时发生异常，也必须关闭 AudioFileClip，避免文件句柄泄漏。
+        ``combine_videos()`` only needs to read the narration audio
+        duration. Even when reading the duration raises an exception, the
+        ``AudioFileClip`` must still be closed to avoid leaking the file
+        handle.
         """
 
         class _FakeAudioReader:
@@ -235,6 +255,7 @@ class TestVideoService(unittest.TestCase):
         Ensure `combine_videos` safely handles
         `video_transition_mode=None`.
         """
+
         class _FakeAudioClip:
             @property
             def duration(self):
@@ -257,40 +278,39 @@ class TestVideoService(unittest.TestCase):
                     video_transition_mode=None,
                 )
                 self.assertEqual(result, combined_video_path)
-    
+
     def test_wrap_text(self):
         """test text wrapping function"""
         try:
             font_path = os.path.join(utils.font_dir(), "STHeitiMedium.ttc")
             if not os.path.exists(font_path):
                 self.fail(f"font file not found: {font_path}")
-                
+
             # test english text wrapping
-            test_text_en = "This is a test text for wrapping long sentences in english language"
-            
+            test_text_en = (
+                "This is a test text for wrapping long sentences in english language"
+            )
+
             wrapped_text_en, text_height_en = vd.wrap_text(
-                text=test_text_en,
-                max_width=300,
-                font=font_path,
-                fontsize=30
+                text=test_text_en, max_width=300, font=font_path, fontsize=30
             )
             print(wrapped_text_en, text_height_en)
             # verify text is wrapped
             self.assertIn("\n", wrapped_text_en)
-            
+
             # test chinese text wrapping
-            test_text_zh = "这是一段用来测试中文长句换行的文本内容，应该会根据宽度限制进行换行处理"
+            test_text_zh = (
+                "这是一段用来测试中文长句换行的文本内容，应该会根据宽度限制进行换行处理"
+            )
             wrapped_text_zh, text_height_zh = vd.wrap_text(
-                text=test_text_zh,
-                max_width=300,
-                font=font_path,
-                fontsize=30
-            )   
+                text=test_text_zh, max_width=300, font=font_path, fontsize=30
+            )
             print(wrapped_text_zh, text_height_zh)
             # verify chinese text is wrapped
             self.assertIn("\n", wrapped_text_zh)
         except Exception as e:
             self.fail(f"test wrap_text failed: {str(e)}")
 
+
 if __name__ == "__main__":
-    unittest.main() 
+    unittest.main()

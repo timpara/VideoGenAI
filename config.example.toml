@@ -1,39 +1,44 @@
 [app]
 video_source = "pexels" # "pexels" or "pixabay"
 
-# 是否隐藏配置面板
+# Whether to hide the configuration panel
 hide_config = false
 
-# Azure TTS V1(edge_tts) 单次流式请求超时时间，单位秒。
-# 网络异常、服务端限流或 voice 与文本语言不匹配时，edge_tts 可能长期卡住。
-# 默认 30 秒可避免 WebUI 任务无反馈；慢网络或代理环境可适当调大。
-# 设置为 0 表示禁用超时。
+# Azure TTS V1 (edge_tts) per-request streaming timeout, in seconds.
+# When the network is flaky, the server is rate-limiting, or the voice does
+# not match the text language, edge_tts can hang indefinitely.
+# The default of 30 seconds keeps the WebUI from appearing frozen; raise it
+# for slow networks or proxy environments. Set to 0 to disable the timeout.
 edge_tts_timeout = 30
 
-# 是否校验外部 API 和素材下载的 TLS 证书。
-# 默认必须开启，避免 Pexels/Pixabay API key 和下载素材被中间人攻击篡改。
-# 只有在企业代理或自签证书环境明确需要时，才临时改为 false。
+# Whether to verify TLS certificates for external APIs and asset downloads.
+# This must stay enabled by default to prevent man-in-the-middle attacks on
+# Pexels / Pixabay API keys and downloaded assets.
+# Only set it to false temporarily when a corporate proxy or self-signed
+# certificate environment explicitly requires it.
 tls_verify = true
 
 # Pexels API Key
 # Register at https://www.pexels.com/api/ to get your API key.
 # You can use multiple keys to avoid rate limits.
 # For example: pexels_api_keys = ["123adsf4567adf89","abd1321cd13efgfdfhi"]
-# 特别注意格式，Key 用英文双引号括起来，多个Key用逗号隔开
+# Pay attention to the format: each key must be wrapped in double quotes, and
+# multiple keys are separated by commas.
 pexels_api_keys = []
 
 # Pixabay API Key
 # Register at https://pixabay.com/api/docs/ to get your API key.
 # You can use multiple keys to avoid rate limits.
 # For example: pixabay_api_keys = ["123adsf4567adf89","abd1321cd13efgfdfhi"]
-# 特别注意格式，Key 用英文双引号括起来，多个Key用逗号隔开
+# Pay attention to the format: each key must be wrapped in double quotes, and
+# multiple keys are separated by commas.
 pixabay_api_keys = []
 
-# 支持的提供商 (Supported providers):
+# Supported providers:
 #   openai
-#   moonshot    (月之暗面)
+#   moonshot    (Moonshot AI)
 #   azure
-#   qwen        (通义千问)
+#   qwen        (Alibaba Qwen / Tongyi Qianwen)
 #   deepseek
 #   gemini
 #   ollama
@@ -41,8 +46,8 @@ pixabay_api_keys = []
 #   oneapi
 #   cloudflare
 #   minimax
-#   ernie       (文心一言)
-#   modelscope  (魔搭社区)
+#   ernie       (Baidu ERNIE / Wenxin Yiyan)
+#   modelscope  (ModelScope community)
 #   litellm     (100+ providers via LiteLLM gateway)
 llm_provider = "openai"
 
@@ -63,14 +68,15 @@ ollama_model_name = ""
 
 ########## OpenAI API Key
 # Get your API key at https://platform.openai.com/api-keys
-# 也可以填写兼容 OpenAI Chat Completions 协议的供应商密钥，
-# 例如 OpenRouter 这类提供自定义 base_url 的平台。
+# You can also use an API key from a provider that is compatible with the
+# OpenAI Chat Completions protocol, for example OpenRouter and similar
+# platforms that expose a custom base_url.
 openai_api_key = ""
 # No need to set it unless you want to use your own proxy
-# 如果使用兼容 OpenAI 接口的平台，请在这里填写对应的 base_url。
+# If you use an OpenAI-compatible platform, set its base_url here.
 openai_base_url = ""
 # Check your available models at https://platform.openai.com/account/limits
-# 如果使用兼容供应商，请填写该平台要求的模型 ID。
+# If you use a compatible provider, fill in the model ID required by that platform.
 openai_model_name = "gpt-4o-mini"
 
 ########## Moonshot API Key
@@ -97,8 +103,8 @@ enable_g4f = false
 g4f_model_name = "gpt-3.5-turbo"
 
 ########## Azure API Key
-# Visit https://learn.microsoft.com/zh-cn/azure/ai-services/openai/ to get more details
-# API documentation: https://learn.microsoft.com/zh-cn/azure/ai-services/openai/reference
+# Visit https://learn.microsoft.com/en-us/azure/ai-services/openai/ to get more details
+# API documentation: https://learn.microsoft.com/en-us/azure/ai-services/openai/reference
 azure_api_key = ""
 azure_base_url = ""
 azure_model_name = "gpt-35-turbo"        # replace with your model deployment name
@@ -177,12 +183,6 @@ subtitle_provider = "edge"
 #
 # FFMPEG
 #
-# 通常情况下，ffmpeg 会被自动下载，并且会被自动检测到。
-# 但是如果你的环境有问题，无法自动下载，可能会遇到如下错误：
-#   RuntimeError: No ffmpeg exe could be found.
-#   Install ffmpeg on your system, or set the IMAGEIO_FFMPEG_EXE environment variable.
-# 此时你可以手动下载 ffmpeg 并设置 ffmpeg_path，下载地址：https://www.gyan.dev/ffmpeg/builds/
-
 # Under normal circumstances, ffmpeg is downloaded automatically and detected automatically.
 # However, if there is an issue with your environment that prevents automatic downloading, you might encounter the following error:
 #   RuntimeError: No ffmpeg exe could be found.
@@ -191,12 +191,6 @@ subtitle_provider = "edge"
 
 # ffmpeg_path = "C:\\Users\\harry\\Downloads\\ffmpeg.exe"
 #########################################################################################
-
-# 当视频生成成功后，API服务提供的视频下载接入点，默认为当前服务的地址和监听端口
-# 比如 http://127.0.0.1:8080/tasks/6357f542-a4e1-46a1-b4c9-bf3bd0df5285/final-1.mp4
-# 如果你需要使用域名对外提供服务（一般会用nginx做代理），则可以设置为你的域名
-# 比如 https://xxxx.com/tasks/6357f542-a4e1-46a1-b4c9-bf3bd0df5285/final-1.mp4
-# endpoint="https://xxxx.com"
 
 # When the video is successfully generated, the API service provides a download endpoint for the video, defaulting to the service's current address and listening port.
 # For example, http://127.0.0.1:8080/tasks/6357f542-a4e1-46a1-b4c9-bf3bd0df5285/final-1.mp4
@@ -211,11 +205,6 @@ endpoint = ""
 # material_directory = "/user/harry/videos"  # Indicates that video materials will be downloaded to a specified folder
 # material_directory = "task"                # Indicates that video materials will be downloaded to the current task's folder, this method does not allow sharing of already downloaded video materials
 
-# 视频素材存放位置
-# material_directory = ""                    #表示将视频素材下载到默认的文件夹，默认文件夹为当前项目下的 ./storage/cache_videos
-# material_directory = "/user/harry/videos"  #表示将视频素材下载到指定的文件夹中
-# material_directory = "task"                #表示将视频素材下载到当前任务的文件夹中，这种方式无法共享已经下载的视频素材
-
 material_directory = ""
 
 # Used for state management of the task
@@ -225,10 +214,12 @@ redis_port = 6379
 redis_db = 0
 redis_password = ""
 
-# 文生视频时的最大并发任务数
+# Maximum number of concurrent text-to-video tasks
 max_concurrent_tasks = 5
 
-# 并发任务已满后的最大排队任务数，超过后接口返回 429，避免匿名请求无限堆积
+# Maximum number of queued tasks once concurrency is saturated. Requests
+# beyond this limit return HTTP 429 so anonymous traffic cannot pile up
+# indefinitely.
 max_queued_tasks = 100
 
 
@@ -273,14 +264,12 @@ api_key = ""
 
 [ui]
 # UI related settings
-# 是否隐藏日志信息
 # Whether to hide logs in the UI
 hide_log = false
 
-# 字幕位置设置 (Subtitle position settings)
-# 可选值 (Available values): "top", "center", "bottom", "custom"
+# Subtitle position settings
+# Available values: "top", "center", "bottom", "custom"
 # subtitle_position = "custom"
-# 自定义位置，表示离顶部的百分比 (0-100)，仅当 subtitle_position = "custom" 时生效
 # Custom position as percentage from top (0-100), only effective when subtitle_position = "custom"
 # custom_position = 70.0
 
